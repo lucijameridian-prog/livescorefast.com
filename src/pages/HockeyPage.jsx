@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { getHockeyByDate } from '../api/sports'
+import { getGamesByDate } from '../api/sports'
 import HockeyCard from '../components/HockeyCard'
 import DatePicker from '../components/DatePicker'
 
@@ -13,7 +13,7 @@ export default function HockeyPage() {
   useEffect(() => {
     setLoading(true)
     setError(null)
-    getHockeyByDate(date)
+    getGamesByDate('hockey', date)
       .then(setGames)
       .catch(() => setError('Could not load games. Check your API key.'))
       .finally(() => setLoading(false))
