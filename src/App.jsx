@@ -2,6 +2,8 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import LivePage from './pages/LivePage'
 import FootballPage from './pages/FootballPage'
+import BasketballPage from './pages/BasketballPage'
+import HockeyPage from './pages/HockeyPage'
 import ComingSoonPage from './pages/ComingSoonPage'
 
 export default function App() {
@@ -13,9 +15,9 @@ export default function App() {
           <Routes>
             <Route path="/" element={<LivePage />} />
             <Route path="/football" element={<FootballPage />} />
-            <Route path="/basketball" element={<ComingSoonPage sport="Basketball" icon="🏀" />} />
+            <Route path="/basketball" element={<BasketballPage />} />
+            <Route path="/hockey" element={<HockeyPage />} />
             <Route path="/tennis" element={<ComingSoonPage sport="Tennis" icon="🎾" />} />
-            <Route path="/hockey" element={<ComingSoonPage sport="Hockey" icon="🏒" />} />
           </Routes>
         </main>
       </div>

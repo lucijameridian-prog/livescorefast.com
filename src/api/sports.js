@@ -1,30 +1,30 @@
 import axios from 'axios'
 
-const BASE = 'https://v3.football.api-sports.io'
 const KEY = import.meta.env.VITE_API_KEY || ''
 
-const client = axios.create({
-  baseURL: BASE,
-  headers: {
-    'x-apisports-key': KEY,
-  },
+const footballClient = axios.create({
+  baseURL: 'https://v3.football.api-sports.io',
+  headers: { 'x-apisports-key': KEY },
 })
 
-export const SPORTS = [
-  { id: 'football', label: 'Football', icon: '⚽' },
-  { id: 'basketball', label: 'Basketball', icon: '🏀' },
-  { id: 'tennis', label: 'Tennis', icon: '🎾' },
-  { id: 'hockey', label: 'Hockey', icon: '🏒' },
-]
+const basketballClient = axios.create({
+  baseURL: 'https://v1.basketball.api-sports.io',
+  headers: { 'x-apisports-key': KEY },
+})
 
-// Football (API-Football v3)
+const hockeyClient = axios.create({
+  baseURL: 'https://v1.hockey.api-sports.io',
+  headers: { 'x-apisports-key': KEY },
+})
+
+// ─── FOOTBALL ───────────────────────────────────────────
 export async function getLiveMatches() {
-  const res = await client.get('/fixtures', { params: { live: 'all' } })
+  const res = await footballClient.get('/fixtures', { params: { live: 'all' } })
   return res.data.response || []
 }
 
 export async function getFixturesByDate(date) {
-  const res = await client.get('/fixtures', { params: { date } })
+  const res = await footballClient.get('/fixtures', { params: { date } })
   return res.data.response || []
 }
 
@@ -37,4 +37,26 @@ export async function getTopLeagues() {
     { id: 61, name: 'Ligue 1', country: 'France', logo: 'https://media.api-sports.io/football/leagues/61.png' },
     { id: 2, name: 'Champions League', country: 'Europe', logo: 'https://media.api-sports.io/football/leagues/2.png' },
   ]
+}
+
+// ─── BASKETBALL ─────────────────────────────────────────
+export async function getBasketballByDate(date) {
+  const res = await basketballClient.get('/games', { params: { date } })
+  return res.data.response || []
+}
+
+export async function getLiveBasketball() {
+  const res = await basketballClient.get('/games', { params: { live: 'all' } })
+  return res.data.response || []
+}
+
+// ─── HOCKEY ─────────────────────────────────────────────
+export async function getHockeyByDate(date) {
+  const res = await hockeyClient.get('/games', { params: { date } })
+  return res.data.response || []
+}
+
+export async function getLiveHockey() {
+  const res = await hockeyClient.get('/games', { params: { live: 'all' } })
+  return res.data.response || []
 }
