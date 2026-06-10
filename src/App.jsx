@@ -4,7 +4,7 @@ import LivePage from './pages/LivePage'
 import FootballPage from './pages/FootballPage'
 import BasketballPage from './pages/BasketballPage'
 import HockeyPage from './pages/HockeyPage'
-import TennisPage from './pages/TennisPage'
+import ComingSoonPage from './pages/ComingSoonPage'
 
 export default function App() {
   return (
@@ -17,7 +17,7 @@ export default function App() {
             <Route path="/football" element={<FootballPage />} />
             <Route path="/basketball" element={<BasketballPage />} />
             <Route path="/hockey" element={<HockeyPage />} />
-            <Route path="/tennis" element={<TennisPage />} />
+            <Route path="/tennis" element={<ComingSoonPage sport="Tennis" icon="🎾" />} />
           </Routes>
         </main>
       </div>
