@@ -17,6 +17,11 @@ const hockeyClient = axios.create({
   headers: { 'x-apisports-key': KEY },
 })
 
+const tennisClient = axios.create({
+  baseURL: 'https://v1.tennis.api-sports.io',
+  headers: { 'x-apisports-key': KEY },
+})
+
 // ─── FOOTBALL ───────────────────────────────────────────
 export async function getLiveMatches() {
   const res = await footballClient.get('/fixtures', { params: { live: 'all' } })
@@ -58,5 +63,16 @@ export async function getHockeyByDate(date) {
 
 export async function getLiveHockey() {
   const res = await hockeyClient.get('/games', { params: { live: 'all' } })
+  return res.data.response || []
+}
+
+// ─── TENNIS ─────────────────────────────────────────────
+export async function getTennisByDate(date) {
+  const res = await tennisClient.get('/games', { params: { date } })
+  return res.data.response || []
+}
+
+export async function getLiveTennis() {
+  const res = await tennisClient.get('/games', { params: { live: 'all' } })
   return res.data.response || []
 }
