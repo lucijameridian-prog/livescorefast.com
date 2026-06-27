@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { getGamesByDate } from '../api/sports'
 import GenericCard from '../components/GenericCard'
 import DatePicker from '../components/DatePicker'
+import SportSidebar from '../components/SportSidebar'
 
 export default function GenericSportPage({ sport, label, icon }) {
   const today = new Date().toISOString().split('T')[0]
@@ -9,21 +10,25 @@ export default function GenericSportPage({ sport, label, icon }) {
   const [games, setGames] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [selectedLeague, setSelectedLeague] = useState(null)
 
   useEffect(() => {
     setLoading(true)
     setError(null)
     getGamesByDate(sport, date)
       .then(setGames)
-      .catch(() => setError('Could not load games. Check your API key.'))
+      .catch(() => setError('Could not load games.'))
       .finally(() => setLoading(false))
   }, [sport, date])
 
-  const grouped = games.reduce((acc, g) => {
-    const key = g.league?.id || g.competition?.id || g.event?.id || 'other'
-    const name = g.league?.name || g.competition?.name || g.event?.name || label
-    const logo = g.league?.logo || null
-    if (!acc[key]) acc[key] = { name, logo, games: [] }
+  const filtered = selectedLeague
+    ? games.filter(g => g.idLeague === selectedLeague || g.strLeague?.includes(selectedLeague))
+    : games
+
+  const grouped = filtered.reduce((acc, g) => {
+    const key = g.idLeague || 'other'
+    const name = g.strLeague || label
+    if (!acc[key]) acc[key] = { name, games: [] }
     acc[key].games.push(g)
     return acc
   }, {})
@@ -35,30 +40,35 @@ export default function GenericSportPage({ sport, label, icon }) {
         <DatePicker selected={date} onChange={setDate} />
       </div>
 
-      {loading && <Skeleton />}
-      {error && (
-        <div className="text-red-400 text-sm p-4 bg-red-900/20 rounded-lg border border-red-800/40">⚠️ {error}</div>
-      )}
-
-      {!loading && !error && games.length === 0 && (
-        <div className="text-center py-20 text-slate-500">
-          <div className="text-4xl mb-3">{icon}</div>
-          <p>No games on {date}.</p>
+      <div className="flex gap-4">
+        <div className="hidden lg:block w-56 flex-shrink-0">
+          <SportSidebar sport={sport} selected={selectedLeague} onSelect={setSelectedLeague} />
         </div>
-      )}
 
-      {Object.values(grouped).map(({ name, logo, games: gs }, i) => (
-        <div key={i} className="mb-6">
-          <div className="flex items-center gap-2 mb-3 pb-2 border-b border-dark-600">
-            {logo && <img src={logo} alt={name} className="w-5 h-5 object-contain" />}
-            <span className="font-semibold text-white text-sm">{name}</span>
-            <span className="ml-auto text-xs text-slate-600">{gs.length} games</span>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
-            {gs.map((g, j) => <GenericCard key={g.id || j} game={g} />)}
-          </div>
+        <div className="flex-1 min-w-0">
+          {loading && <Skeleton />}
+          {error && <div className="text-red-400 text-sm p-4 bg-red-900/20 rounded-lg border border-red-800/40">⚠️ {error}</div>}
+
+          {!loading && !error && filtered.length === 0 && (
+            <div className="text-center py-20 text-slate-500">
+              <div className="text-4xl mb-3">{icon}</div>
+              <p>No games on {date}.</p>
+            </div>
+          )}
+
+          {Object.values(grouped).map(({ name, games: gs }, i) => (
+            <div key={i} className="mb-6">
+              <div className="flex items-center gap-2 mb-3 pb-2 border-b border-dark-600">
+                <span className="font-semibold text-white text-sm">{name}</span>
+                <span className="ml-auto text-xs text-slate-600">{gs.length} games</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+                {gs.map((g, j) => <GenericCard key={g.idEvent || j} game={g} />)}
+              </div>
+            </div>
+          ))}
         </div>
-      ))}
+      </div>
     </div>
   )
 }
