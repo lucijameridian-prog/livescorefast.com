@@ -2,11 +2,11 @@ import { useEffect, useState } from 'react'
 import axios from 'axios'
 
 const FEEDS = [
-  { label: 'All Sports', url: 'https://www.skysports.com/rss/12040' },
-  { label: 'Football',   url: 'https://www.skysports.com/rss/12040/football' },
-  { label: 'F1',         url: 'https://www.skysports.com/rss/12040/f1' },
-  { label: 'Tennis',     url: 'https://www.skysports.com/rss/12040/tennis' },
-  { label: 'Cricket',    url: 'https://www.skysports.com/rss/12040/cricket' },
+  { label: 'All Sports',  url: 'https://www.theguardian.com/sport/rss' },
+  { label: 'Football',    url: 'https://www.theguardian.com/football/rss' },
+  { label: 'Basketball',  url: 'https://www.theguardian.com/sport/basketball/rss' },
+  { label: 'Tennis',      url: 'https://www.theguardian.com/sport/tennis/rss' },
+  { label: 'Formula 1',   url: 'https://www.theguardian.com/sport/formulaone/rss' },
 ]
 
 function timeAgo(dateStr) {
@@ -34,7 +34,6 @@ export default function NewsPage() {
     <div>
       <h1 className="text-xl font-bold text-white mb-4">📰 News</h1>
 
-      {/* Filter tabs */}
       <div className="flex gap-1 mb-6 bg-dark-800 rounded-lg p-1 border border-dark-600 w-fit">
         {FEEDS.map(f => (
           <button key={f.label} onClick={() => setFeed(f)}
@@ -84,7 +83,8 @@ export default function NewsPage() {
                   {article.title}
                 </h2>
                 {article.description && (
-                  <p className="text-xs text-slate-500 line-clamp-2 mb-3 flex-1">{article.description}</p>
+                  <p className="text-xs text-slate-500 line-clamp-2 mb-3 flex-1"
+                    dangerouslySetInnerHTML={{__html: article.description.replace(/<[^>]*>/g,'')}} />
                 )}
                 <div className="flex items-center justify-between mt-auto">
                   <span className="text-xs text-slate-600">{timeAgo(article.pubDate)}</span>
@@ -96,7 +96,7 @@ export default function NewsPage() {
         </div>
       )}
 
-      <p className="text-xs text-slate-700 mt-6 text-center">News sourced from Sky Sports</p>
+      <p className="text-xs text-slate-700 mt-6 text-center">News sourced from The Guardian</p>
     </div>
   )
 }
