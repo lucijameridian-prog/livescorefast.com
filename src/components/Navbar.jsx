@@ -1,8 +1,9 @@
 import { Link, useLocation } from 'react-router-dom'
-import { useState } from 'react'
+import SearchBar from './SearchBar'
 
 const NAV_LINKS = [
   { to: '/', label: 'Live', icon: '🔴' },
+  { to: '/news', label: 'News', icon: '📰' },
   { to: '/football', label: 'Football', icon: '⚽' },
   { to: '/basketball', label: 'Basketball', icon: '🏀' },
   { to: '/hockey', label: 'Hockey', icon: '🏒' },
@@ -23,12 +24,12 @@ export default function Navbar() {
 
   return (
     <nav className="bg-dark-800 border-b border-dark-600 sticky top-0 z-50">
-      <div className="max-w-6xl mx-auto px-4 flex items-center gap-4 h-14">
+      <div className="max-w-6xl mx-auto px-4 flex items-center gap-3 h-14">
         <Link to="/" className="text-white font-bold text-xl tracking-tight flex items-center gap-2 flex-shrink-0">
           <span className="text-accent">⚡</span> LiveScore
         </Link>
 
-        <div className="flex items-center gap-1 overflow-x-auto pb-0" style={{scrollbarWidth: 'none'}}>
+        <div className="flex items-center gap-1 overflow-x-auto flex-1" style={{scrollbarWidth: 'none'}}>
           {NAV_LINKS.map(({ to, label, icon }) => (
             <Link
               key={to}
@@ -42,6 +43,10 @@ export default function Navbar() {
               <span>{icon}</span> {label}
             </Link>
           ))}
+        </div>
+
+        <div className="flex-shrink-0">
+          <SearchBar />
         </div>
       </div>
     </nav>

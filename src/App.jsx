@@ -7,6 +7,9 @@ import HockeyPage from './pages/HockeyPage'
 import GenericSportPage from './pages/GenericSportPage'
 import ComingSoonPage from './pages/ComingSoonPage'
 import MatchDetailPage from './pages/MatchDetailPage'
+import NewsPage from './pages/NewsPage'
+import TeamPage from './pages/TeamPage'
+import PlayerPage from './pages/PlayerPage'
 
 export default function App() {
   return (
@@ -16,6 +19,7 @@ export default function App() {
         <main className="max-w-6xl mx-auto px-4 py-6">
           <Routes>
             <Route path="/" element={<LivePage />} />
+            <Route path="/news" element={<NewsPage />} />
             <Route path="/football" element={<FootballPage />} />
             <Route path="/basketball" element={<BasketballPage />} />
             <Route path="/hockey" element={<HockeyPage />} />
@@ -30,6 +34,8 @@ export default function App() {
             <Route path="/formula1" element={<GenericSportPage sport="formula1" label="Formula 1" icon="🏎️" />} />
             <Route path="/tennis" element={<ComingSoonPage sport="Tennis" icon="🎾" />} />
             <Route path="/match/:id" element={<MatchDetailPage />} />
+            <Route path="/team/:id" element={<TeamPage />} />
+            <Route path="/player/:id" element={<PlayerPage />} />
           </Routes>
         </main>
       </div>
