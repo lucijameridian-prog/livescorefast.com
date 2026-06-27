@@ -3,6 +3,7 @@ import { getFixturesByDate } from '../api/sports'
 import MatchCard from '../components/MatchCard'
 import DatePicker from '../components/DatePicker'
 import SportSidebar from '../components/SportSidebar'
+import Standings from '../components/Standings'
 
 export default function FootballPage() {
   const today = new Date().toISOString().split('T')[0]
@@ -45,7 +46,7 @@ export default function FootballPage() {
           <SportSidebar sport="football" selected={selectedLeague} onSelect={setSelectedLeague} />
         </div>
 
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 min-h-0">
           {loading && <Skeleton />}
           {error && <div className="text-red-400 text-sm p-4 bg-red-900/20 rounded-lg border border-red-800/40">⚠️ {error}</div>}
 
@@ -67,6 +68,10 @@ export default function FootballPage() {
               </div>
             </div>
           ))}
+        </div>
+
+        <div className="hidden xl:block w-64 flex-shrink-0">
+          <Standings />
         </div>
       </div>
     </div>
