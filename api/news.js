@@ -100,6 +100,9 @@ export default async function handler(req, res) {
   items.sort((a, b) => (b.date || '').localeCompare(a.date || ''))
   items = items.slice(0, region === 'world' ? 30 : 40)
 
+  // Brand all news as LiveScoreFast — never expose the originating portal.
+  items = items.map(({ source, ...rest }) => ({ ...rest, source: 'LiveScoreFast' }))
+
   res.setHeader('Cache-Control', 's-maxage=600, stale-while-revalidate=1800')
   res.setHeader('Content-Type', 'application/json; charset=utf-8')
   res.status(200).json({ region, cat, count: items.length, items })
