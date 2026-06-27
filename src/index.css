@@ -120,6 +120,14 @@ body {
   .promo-img { object-fit: contain; }
 }
 
+/* legal / static content pages */
+.legal h2 { font-family: 'Saira Condensed', sans-serif; font-size: 18px; color: #fff; margin: 20px 0 8px; text-transform: uppercase; letter-spacing: .5px; }
+.legal h2:first-child { margin-top: 0; }
+.legal p, .legal li { font-size: 14px; line-height: 1.7; color: #aeb9c9; margin: 0 0 10px; }
+.legal ul { padding-left: 20px; margin: 0 0 12px; }
+.legal a { color: var(--gold); }
+.legal strong { color: #dbe3ee; }
+
 /* match card grid */
 .card-grid {
   display: grid;

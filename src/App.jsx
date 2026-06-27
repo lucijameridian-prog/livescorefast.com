@@ -12,6 +12,11 @@ import NewsPage from './pages/NewsPage'
 import TeamPage from './pages/TeamPage'
 import PlayerPage from './pages/PlayerPage'
 import PredictionsPage from './pages/PredictionsPage'
+import PrivacyPage from './pages/PrivacyPage'
+import TermsPage from './pages/TermsPage'
+import AboutPage from './pages/AboutPage'
+import ContactPage from './pages/ContactPage'
+import CookieConsent from './components/CookieConsent'
 
 export default function App() {
   return (
@@ -38,8 +43,13 @@ export default function App() {
           <Route path="/match/:id" element={<MatchDetailPage />} />
           <Route path="/team/:id" element={<TeamPage />} />
           <Route path="/player/:id" element={<PlayerPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path="/terms" element={<TermsPage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/contact" element={<ContactPage />} />
         </Routes>
         <Footer />
+        <CookieConsent />
       </div>
     </BrowserRouter>
   )
