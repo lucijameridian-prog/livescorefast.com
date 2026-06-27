@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, Link } from 'react-router-dom'
 import axios from 'axios'
+import { teamColor, abbr } from '../utils/team'
+
+const PANEL_HEAD = { background: '#0a0f1a', padding: '10px 16px', fontFamily: "'Saira Condensed',sans-serif", fontWeight: 700, fontSize: 13, letterSpacing: '1px', color: 'var(--gold)', textTransform: 'uppercase', borderBottom: '1px solid var(--line)' }
 
 export default function PlayerPage() {
   const { id } = useParams()
@@ -9,91 +12,84 @@ export default function PlayerPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    window.scrollTo(0, 0)
     axios.get(`https://www.thesportsdb.com/api/v1/json/3/lookupplayer.php?id=${id}`)
       .then(res => setPlayer((res.data.players || [])[0] || null))
       .catch(() => {})
       .finally(() => setLoading(false))
   }, [id])
 
-  if (loading) return (
-    <div className="flex items-center justify-center py-20">
-      <div className="animate-spin w-8 h-8 border-2 border-accent border-t-transparent rounded-full" />
-    </div>
-  )
+  if (loading) return <div style={{ display: 'flex', justifyContent: 'center', padding: '80px 0' }}><div style={{ width: 32, height: 32, border: '3px solid var(--accent)', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin .8s linear infinite' }} /></div>
+  if (!player) return <div style={{ textAlign: 'center', padding: '80px 0', color: 'var(--mut)' }}><p>Player not found.</p><button onClick={() => navigate(-1)} style={{ marginTop: 16, color: 'var(--gold)', background: 'none', border: 'none', cursor: 'pointer' }}>← Go back</button></div>
 
-  if (!player) return (
-    <div className="text-center py-20 text-slate-500">
-      <p>Player not found.</p>
-      <button onClick={() => navigate(-1)} className="mt-4 text-accent text-sm hover:underline">← Go back</button>
-    </div>
-  )
+  const color = teamColor(player.strPlayer || '')
+  const age = player.dateBorn ? Math.floor((Date.now() - new Date(player.dateBorn)) / (365.25 * 24 * 3600 * 1000)) : null
+  const img = player.strCutout || player.strThumb
 
-  const age = player.dateBorn
-    ? Math.floor((Date.now() - new Date(player.dateBorn)) / (365.25 * 24 * 3600 * 1000))
-    : null
+  const info = [
+    ['Full name', player.strPlayer], ['Date of birth', player.dateBorn], ['Nationality', player.strNationality],
+    ['Height', player.strHeight], ['Weight', player.strWeight], ['Position', player.strPosition], ['Shirt number', player.strNumber],
+  ].filter(r => r[1])
 
-  const stats = [
-    { label: 'Team',        value: player.strTeam },
-    { label: 'Position',    value: player.strPosition },
-    { label: 'Nationality', value: player.strNationality },
-    { label: 'Age',         value: age ? `${age} years` : null },
-    { label: 'Born',        value: player.dateBorn },
-    { label: 'Height',      value: player.strHeight },
-    { label: 'Weight',      value: player.strWeight },
-    { label: 'Kit Number',  value: player.strNumber ? `#${player.strNumber}` : null },
-    { label: 'Agent',       value: player.strAgent },
-  ].filter(s => s.value)
+  const heroStats = [
+    player.strNumber && ['Number', `#${player.strNumber}`],
+    age && ['Age', age],
+    player.strNationality && ['Nation', player.strNationality],
+  ].filter(Boolean)
 
   return (
-    <div className="max-w-3xl mx-auto">
-      <button onClick={() => navigate(-1)} className="text-slate-400 hover:text-white text-sm mb-4 flex items-center gap-1">
-        ← Back
-      </button>
-
-      <div className="bg-dark-800 rounded-xl border border-dark-600 p-6 mb-4">
-        <div className="flex gap-6 items-start">
-          {player.strCutout || player.strThumb ? (
-            <img src={player.strCutout || player.strThumb} alt={player.strPlayer}
-              className="w-28 h-28 object-cover rounded-xl flex-shrink-0 bg-dark-700"
-              onError={e => e.target.style.display='none'} />
-          ) : (
-            <div className="w-28 h-28 rounded-xl bg-dark-600 flex items-center justify-center text-3xl text-slate-600 flex-shrink-0">
-              {player.strPlayer?.[0]}
+    <div>
+      {/* HERO */}
+      <div style={{ background: `radial-gradient(130% 170% at 80% -40%,${color} 0%,#0d1320 55%,#090d16 100%)`, borderBottom: '1px solid var(--line)' }}>
+        <div style={{ maxWidth: 1180, margin: '0 auto', padding: '28px 18px', display: 'flex', alignItems: 'center', gap: 28, flexWrap: 'wrap' }}>
+          <div style={{ position: 'relative', flexShrink: 0 }}>
+            <div style={{ width: 120, height: 120, borderRadius: 18, background: `linear-gradient(160deg,${color},#0e1320)`, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', overflow: 'hidden', boxShadow: '0 12px 32px rgba(0,0,0,.5)' }}>
+              {img ? <img src={img} alt={player.strPlayer} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={e => { e.target.style.display = 'none' }} />
+                : <span className="font-cond" style={{ fontWeight: 800, fontSize: 46, color: 'rgba(255,255,255,.92)', marginBottom: 6 }}>{abbr(player.strPlayer)}</span>}
             </div>
-          )}
-          <div>
-            <h1 className="text-2xl font-bold text-white">{player.strPlayer}</h1>
-            <p className="text-accent font-medium mt-0.5">{player.strPosition}</p>
-            <p className="text-slate-400 text-sm mt-1">{player.strTeam} · {player.strNationality}</p>
-
-            <div className="flex flex-wrap gap-2 mt-3">
-              {stats.slice(0, 4).map(s => (
-                <span key={s.label} className="text-xs bg-dark-600 border border-dark-500 text-slate-300 px-2 py-1 rounded-md">
-                  {s.label}: {s.value}
-                </span>
-              ))}
+            {player.strNumber && <span className="font-cond" style={{ position: 'absolute', top: -12, right: -12, width: 44, height: 44, borderRadius: 12, background: 'var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 20, color: '#1a1205', boxShadow: '0 6px 16px rgba(0,0,0,.4)' }}>{player.strNumber}</span>}
+          </div>
+          <div style={{ minWidth: 0 }}>
+            {player.strTeam && <Link to="/football" style={{ display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: 12.5, color: 'var(--gold)', fontWeight: 700, letterSpacing: '.5px', textTransform: 'uppercase', textDecoration: 'none', marginBottom: 6 }}><span style={{ width: 16, height: 16, borderRadius: '50%', background: teamColor(player.strTeam), display: 'inline-block' }} />{player.strTeam}</Link>}
+            <h1 className="font-cond" style={{ fontWeight: 800, fontSize: 44, lineHeight: .95, color: '#fff', margin: 0 }}>{player.strPlayer}</h1>
+            <div style={{ display: 'flex', gap: 9, marginTop: 12, flexWrap: 'wrap' }}>
+              {player.strPosition && <span className="font-cond" style={{ background: 'var(--accent)', color: '#fff', fontWeight: 700, fontSize: 13, padding: '4px 13px', borderRadius: 6, textTransform: 'uppercase' }}>{player.strPosition}</span>}
+              {player.strNationality && <span style={{ background: 'rgba(255,255,255,.06)', border: '1px solid var(--line)', color: '#cfd8e4', fontSize: 13, padding: '4px 13px', borderRadius: 6 }}>{player.strNationality}</span>}
+              {age && <span style={{ background: 'rgba(255,255,255,.06)', border: '1px solid var(--line)', color: '#cfd8e4', fontSize: 13, padding: '4px 13px', borderRadius: 6 }}>Age {age}</span>}
             </div>
+          </div>
+          <div style={{ flex: 1 }} />
+          <div style={{ display: 'flex', gap: 10 }}>
+            {heroStats.map(([k, v]) => (
+              <div key={k} style={{ background: 'rgba(255,255,255,.04)', border: '1px solid var(--line)', borderRadius: 10, padding: '14px 20px', textAlign: 'center', minWidth: 78 }}>
+                <div className="font-cond" style={{ fontWeight: 800, fontSize: 26, color: 'var(--gold)', lineHeight: 1 }}>{v}</div>
+                <div style={{ fontSize: 10.5, color: 'var(--mut)', letterSpacing: '.5px', textTransform: 'uppercase', marginTop: 4 }}>{k}</div>
+              </div>
+            ))}
           </div>
         </div>
-
-        {player.strDescriptionEN && (
-          <div className="mt-5 pt-5 border-t border-dark-600">
-            <p className="text-sm text-slate-400 leading-relaxed line-clamp-5">{player.strDescriptionEN}</p>
-          </div>
-        )}
       </div>
 
-      {/* All stats */}
-      <div className="bg-dark-800 rounded-xl border border-dark-600 p-4">
-        <h3 className="text-sm font-semibold text-white mb-3">Player Info</h3>
-        <div className="grid grid-cols-2 gap-2">
-          {stats.map(s => (
-            <div key={s.label} className="flex flex-col">
-              <span className="text-xs text-slate-600">{s.label}</span>
-              <span className="text-sm text-slate-300">{s.value}</span>
+      {/* CONTENT */}
+      <div style={{ maxWidth: 1180, margin: '16px auto', padding: '0 18px 30px', display: 'grid', gridTemplateColumns: '300px minmax(0,1fr)', gap: 16, alignItems: 'start' }} className="player-grid">
+        <aside>
+          <div className="panel">
+            <div style={PANEL_HEAD}>Personal Info</div>
+            {info.map(([k, v]) => (
+              <div key={k} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '11px 16px', borderBottom: '1px solid rgba(255,255,255,.04)', fontSize: 13.5 }}>
+                <span style={{ color: 'var(--mut)' }}>{k}</span><span style={{ color: '#dbe3ee', fontWeight: 600, textAlign: 'right' }}>{v}</span>
+              </div>
+            ))}
+          </div>
+        </aside>
+        <main style={{ minWidth: 0 }}>
+          {player.strDescriptionEN && (
+            <div className="panel">
+              <div style={PANEL_HEAD}>Biography</div>
+              <p style={{ padding: 18, fontSize: 14, lineHeight: 1.65, color: '#aeb9c9', margin: 0 }}>{player.strDescriptionEN}</p>
             </div>
-          ))}
-        </div>
+          )}
+        </main>
       </div>
     </div>
   )

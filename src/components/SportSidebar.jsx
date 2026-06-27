@@ -72,30 +72,32 @@ const LEAGUES = {
   ],
 }
 
+import { leagueCode, teamColor } from '../utils/team'
+
+const TITLES = {
+  football: 'Football Leagues', basketball: 'Basketball Leagues', hockey: 'Hockey Leagues',
+  baseball: 'Baseball Leagues', rugby: 'Rugby Leagues', nfl: 'NFL', nba: 'NBA',
+  volleyball: 'Volleyball Leagues', handball: 'Handball Leagues', mma: 'MMA', afl: 'AFL', formula1: 'Motorsport',
+}
+
 export default function SportSidebar({ sport, selected, onSelect }) {
   const leagues = LEAGUES[sport] || []
   if (!leagues.length) return null
 
   return (
-    <aside className="bg-dark-800 rounded-lg border border-dark-600 p-4">
-      <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Leagues</h3>
-      <ul className="space-y-1">
-        {leagues.map(l => (
-          <li key={l.id}>
-            <button
-              onClick={() => onSelect(selected === l.id ? null : l.id)}
-              className={`w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors text-left
-                ${selected === l.id ? 'bg-accent/20 text-accent' : 'text-slate-400 hover:text-white hover:bg-dark-600'}`}
-            >
-              <img src={l.logo} alt={l.name} className="w-5 h-5 object-contain flex-shrink-0" onError={e => e.target.style.display='none'} />
-              <div className="min-w-0">
-                <div className="font-medium text-xs truncate">{l.name}</div>
-                <div className="text-xs text-slate-600">{l.country}</div>
-              </div>
-            </button>
-          </li>
-        ))}
-      </ul>
-    </aside>
+    <div className="panel">
+      <div className="panel-head">{TITLES[sport] || 'Leagues'}</div>
+      {leagues.map(l => {
+        const active = selected === l.id
+        return (
+          <div key={l.id} onClick={() => onSelect(active ? null : l.id)} className="row-hover"
+            style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderBottom: '1px solid var(--line)', cursor: 'pointer', fontSize: 13, background: active ? 'rgba(226,35,26,.10)' : 'transparent', boxShadow: active ? 'inset 3px 0 0 var(--accent)' : 'none' }}>
+            <span style={{ width: 20, height: 14, borderRadius: 2, background: teamColor(l.name), flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 8, fontWeight: 700, color: 'rgba(255,255,255,.9)' }}>{leagueCode(l.name)}</span>
+            <span style={{ flex: 1, color: '#cfd8e4', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{l.name}</span>
+            <span style={{ color: 'var(--mut)', fontSize: 11.5 }}>{l.country}</span>
+          </div>
+        )
+      })}
+    </div>
   )
 }

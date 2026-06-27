@@ -5,13 +5,19 @@ export default {
   theme: {
     extend: {
       colors: {
-        dark: {
-          900: '#0f1117',
-          800: '#1a1d27',
-          700: '#22263a',
-          600: '#2a2f45',
-        },
-        accent: '#3b82f6',
+        accent: 'var(--accent)',
+        gold: '#F6C915',
+        green: '#1FA84A',
+        live: '#ff3232',
+        bg: '#070a11',
+        panel: '#101622',
+        panel2: '#161e2c',
+        txt: '#e9eef6',
+        mut: '#8593a8',
+      },
+      fontFamily: {
+        sans: ['Saira', 'system-ui', 'sans-serif'],
+        cond: ['Saira Condensed', 'system-ui', 'sans-serif'],
       },
     },
   },

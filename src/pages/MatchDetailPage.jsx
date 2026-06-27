@@ -1,6 +1,20 @@
 import { useEffect, useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
-import { getEventDetails, getEventTimeline, getEventStats, getEventLineup } from '../api/sports'
+import { useParams, useNavigate, Link } from 'react-router-dom'
+import { getEventDetails, getEventTimeline, getEventStats, getEventLineup, getLiveMatches } from '../api/sports'
+import TeamBadge from '../components/TeamBadge'
+import { teamColor } from '../utils/team'
+import { matchStatus, statusBadgeStyle, isLiveType } from '../utils/status'
+
+const PANEL_HEAD = { background: '#0a0f1a', padding: '11px 16px', fontFamily: "'Saira Condensed',sans-serif", fontWeight: 700, fontSize: 14, letterSpacing: '1px', color: 'var(--gold)', textTransform: 'uppercase', borderBottom: '1px solid var(--line)' }
+
+function timelineIcon(type) {
+  const t = (type || '').toLowerCase()
+  if (t.includes('goal')) return <span style={{ width: 18, height: 18, borderRadius: '50%', background: '#fff', border: '2px solid #0e1320', display: 'inline-flex', flexShrink: 0, boxShadow: '0 0 0 1px rgba(255,255,255,.25)' }} />
+  if (t.includes('yellow')) return <span style={{ width: 12, height: 16, borderRadius: 2, background: '#F6C915', display: 'inline-block', flexShrink: 0 }} />
+  if (t.includes('red')) return <span style={{ width: 12, height: 16, borderRadius: 2, background: '#ff3232', display: 'inline-block', flexShrink: 0 }} />
+  if (t.includes('subst')) return <span className="font-cond" style={{ color: '#1FA84A', fontWeight: 800, fontSize: 15, flexShrink: 0 }}>⇄</span>
+  return <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--mut)', flexShrink: 0 }} />
+}
 
 export default function MatchDetailPage() {
   const { id } = useParams()
@@ -9,214 +23,200 @@ export default function MatchDetailPage() {
   const [timeline, setTimeline] = useState([])
   const [stats, setStats] = useState([])
   const [lineup, setLineup] = useState([])
+  const [other, setOther] = useState([])
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState('summary')
 
   useEffect(() => {
     setLoading(true)
-    Promise.all([
-      getEventDetails(id),
-      getEventTimeline(id),
-      getEventStats(id),
-      getEventLineup(id),
-    ]).then(([ev, tl, st, lu]) => {
-      setEvent(ev)
-      setTimeline(tl)
-      setStats(st)
-      setLineup(lu)
-    }).finally(() => setLoading(false))
+    window.scrollTo(0, 0)
+    Promise.all([getEventDetails(id), getEventTimeline(id), getEventStats(id), getEventLineup(id)])
+      .then(([ev, tl, st, lu]) => { setEvent(ev); setTimeline(tl || []); setStats(st || []); setLineup(lu || []) })
+      .finally(() => setLoading(false))
+    getLiveMatches().then(m => setOther((m || []).filter(x => x.idEvent !== id).slice(0, 5))).catch(() => {})
   }, [id])
 
-  if (loading) return (
-    <div className="flex items-center justify-center py-20">
-      <div className="animate-spin w-8 h-8 border-2 border-accent border-t-transparent rounded-full" />
-    </div>
-  )
+  if (loading) return <div style={{ display: 'flex', justifyContent: 'center', padding: '80px 0' }}><div style={{ width: 32, height: 32, border: '3px solid var(--accent)', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin .8s linear infinite' }} /></div>
+  if (!event) return <div style={{ textAlign: 'center', padding: '80px 0', color: 'var(--mut)' }}><p>Match not found.</p><button onClick={() => navigate(-1)} style={{ marginTop: 16, color: 'var(--gold)', background: 'none', border: 'none', cursor: 'pointer' }}>← Go back</button></div>
 
-  if (!event) return (
-    <div className="text-center py-20 text-slate-500">
-      <p>Match not found.</p>
-      <button onClick={() => navigate(-1)} className="mt-4 text-accent text-sm hover:underline">← Go back</button>
-    </div>
-  )
+  const st = matchStatus(event)
+  const live = isLiveType(st.type)
+  const home = { name: event.strHomeTeam, logo: event.strHomeTeamBadge, color: teamColor(event.strHomeTeam || '') }
+  const away = { name: event.strAwayTeam, logo: event.strAwayTeamBadge, color: teamColor(event.strAwayTeam || '') }
 
-  const homeScore = event.intHomeScore
-  const awayScore = event.intAwayScore
-  const htHome = event.intHomeScoreHalf
-  const htAway = event.intAwayScoreHalf
-  const isFinished = event.strStatus === 'Match Finished' || event.strStatus === 'FT'
-  const isLive = event.strStatus && !isFinished && event.strStatus !== 'Not Started'
+  const tabBtn = (id2, label) => {
+    const active = tab === id2
+    return <button key={id2} onClick={() => setTab(id2)} className="font-cond" style={{ flex: 1, background: 'transparent', border: 'none', fontWeight: 700, fontSize: 15, letterSpacing: '.6px', padding: '14px 0', cursor: 'pointer', textTransform: 'uppercase', color: active ? '#fff' : 'var(--mut)', boxShadow: active ? 'inset 0 -3px 0 var(--accent)' : 'none' }}>{label}</button>
+  }
 
-  const homeTimeline = timeline.filter(t => t.strTeam === event.strHomeTeam)
-  const awayTimeline = timeline.filter(t => t.strTeam === event.strAwayTeam)
+  const info = [
+    ['Competition', event.strLeague],
+    ['Venue', event.strVenue],
+    ['Referee', event.strReferee],
+    ['Attendance', event.intAttendance ? Number(event.intAttendance).toLocaleString() : null],
+    ['Date', `${event.dateEvent || ''} ${event.strTime ? event.strTime.slice(0, 5) : ''}`],
+  ].filter(r => r[1] && String(r[1]).trim())
 
   const homeLineup = lineup.filter(l => l.strTeam === event.strHomeTeam)
   const awayLineup = lineup.filter(l => l.strTeam === event.strAwayTeam)
 
   return (
-    <div className="max-w-3xl mx-auto">
-      <button onClick={() => navigate(-1)} className="text-slate-400 hover:text-white text-sm mb-4 flex items-center gap-1">
-        ← Back
-      </button>
+    <div>
+      <div style={{ maxWidth: 1180, margin: '0 auto', padding: '14px 18px 0', display: 'flex', alignItems: 'center', gap: 9, fontSize: 12.5, color: 'var(--mut)' }}>
+        <button onClick={() => navigate(-1)} style={{ color: 'var(--mut)', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 6l-6 6 6 6" /></svg>Live Scores
+        </button>
+        <span>/</span><span style={{ color: '#cfd8e4' }}>{event.strLeague}</span>
+      </div>
 
-      {/* Header */}
-      <div className="bg-dark-800 rounded-xl border border-dark-600 p-6 mb-4">
-        <div className="text-center mb-6">
-          <div className="flex items-center justify-center gap-2 mb-2">
-            {event.strLeagueBadge && <img src={event.strLeagueBadge} className="w-5 h-5 object-contain" onError={e => e.target.style.display='none'} />}
-            <span className="text-xs text-slate-400">{event.strLeague}</span>
-          </div>
-          <div className="text-xs text-slate-500">{event.dateEvent} {event.strTime}</div>
-          {event.strVenue && <div className="text-xs text-slate-600 mt-1">📍 {event.strVenue}</div>}
-        </div>
-
-        {/* Scoreboard */}
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex-1 text-center">
-            {event.strHomeTeamBadge && <img src={event.strHomeTeamBadge} className="w-16 h-16 object-contain mx-auto mb-2" onError={e => e.target.style.display='none'} />}
-            <div className="font-bold text-white text-sm">{event.strHomeTeam}</div>
-          </div>
-
-          <div className="text-center flex-shrink-0">
-            <div className="text-4xl font-bold text-white">
-              {homeScore ?? '-'} <span className="text-slate-500">:</span> {awayScore ?? '-'}
-            </div>
-            {htHome !== null && htHome !== undefined && htHome !== '' && (
-              <div className="text-xs text-slate-500 mt-1">HT: {htHome} - {htAway}</div>
-            )}
-            <div className="mt-2">
-              {isLive
-                ? <span className="text-xs bg-red-600 text-white px-2 py-0.5 rounded-full animate-pulse">LIVE</span>
-                : isFinished
-                  ? <span className="text-xs bg-slate-600 text-slate-300 px-2 py-0.5 rounded-full">Full Time</span>
-                  : <span className="text-xs text-slate-400">{event.strStatus || 'Scheduled'}</span>
-              }
+      <div style={{ maxWidth: 1180, margin: '14px auto 0', padding: '0 18px' }}>
+        <div style={{ borderRadius: 12, overflow: 'hidden', border: '1px solid var(--line)', background: 'radial-gradient(120% 140% at 50% -20%,#21304a 0%,#0d1320 60%,#090d16 100%)' }}>
+          <div style={{ padding: '22px 28px 26px' }}>
+            <div style={{ textAlign: 'center', fontSize: 12.5, fontWeight: 600, letterSpacing: '1px', color: '#b9c4d4', textTransform: 'uppercase', marginBottom: 18 }}>{event.strLeague}</div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 24 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+                <TeamBadge name={home.name} logo={home.logo} size={78} fontSize="26px" />
+                <span className="font-cond" style={{ fontWeight: 700, fontSize: 22, letterSpacing: '.5px', color: '#fff', textAlign: 'center' }}>{home.name}</span>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, minWidth: 200 }}>
+                <span style={statusBadgeStyle(st.type)}>
+                  {st.type === 'live' && <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#ff3232', animation: 'lsf-blink 1s infinite' }} />}
+                  {live ? `LIVE · ${st.text}` : st.text}
+                </span>
+                <div className="font-cond" style={{ display: 'flex', alignItems: 'center', gap: 18, fontWeight: 800, fontSize: 64, lineHeight: 1, color: '#fff' }}>
+                  <span>{event.intHomeScore ?? '-'}</span><span style={{ color: 'var(--mut)', fontSize: 40 }}>:</span><span>{event.intAwayScore ?? '-'}</span>
+                </div>
+                {(event.intHomeScoreHalf != null && event.intHomeScoreHalf !== '') && <span style={{ fontSize: 12, color: 'var(--mut)' }}>HT: {event.intHomeScoreHalf} - {event.intAwayScoreHalf}</span>}
+                {event.strVenue && <span style={{ fontSize: 12, color: 'var(--mut)' }}>{event.strVenue}</span>}
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+                <TeamBadge name={away.name} logo={away.logo} size={78} fontSize="26px" />
+                <span className="font-cond" style={{ fontWeight: 700, fontSize: 22, letterSpacing: '.5px', color: '#fff', textAlign: 'center' }}>{away.name}</span>
+              </div>
             </div>
           </div>
-
-          <div className="flex-1 text-center">
-            {event.strAwayTeamBadge && <img src={event.strAwayTeamBadge} className="w-16 h-16 object-contain mx-auto mb-2" onError={e => e.target.style.display='none'} />}
-            <div className="font-bold text-white text-sm">{event.strAwayTeam}</div>
+          <div style={{ display: 'flex', borderTop: '1px solid var(--line)', background: 'rgba(0,0,0,.25)' }}>
+            {tabBtn('summary', 'Summary')}{tabBtn('stats', 'Stats')}{tabBtn('lineup', 'Lineup')}
           </div>
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-1 mb-4 bg-dark-800 rounded-lg p-1 border border-dark-600">
-        {['summary', 'stats', 'lineup'].map(t => (
-          <button key={t} onClick={() => setTab(t)}
-            className={`flex-1 py-2 rounded-md text-sm font-medium capitalize transition-colors
-              ${tab === t ? 'bg-accent text-white' : 'text-slate-400 hover:text-white'}`}>
-            {t}
-          </button>
-        ))}
+      <div className="detail-grid">
+        <main style={{ minWidth: 0 }}>
+          {tab === 'summary' && (
+            <div className="panel">
+              <div style={PANEL_HEAD}>Match Timeline</div>
+              <div style={{ padding: '8px 16px 16px' }}>
+                {timeline.length === 0 ? (
+                  <div style={{ textAlign: 'center', padding: '32px 0', color: 'var(--mut)', fontSize: 14 }}>No timeline data available.</div>
+                ) : timeline.slice().sort((a, b) => parseInt(a.intClockTime || a.intTime || 0) - parseInt(b.intClockTime || b.intTime || 0)).map((e, i) => {
+                  const isHome = e.strTeam === event.strHomeTeam
+                  const text = e.strPlayer + (e.strAssist ? ` (${e.strAssist})` : '')
+                  return (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '6px 0' }}>
+                      <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 9, textAlign: 'right', minWidth: 0 }}>
+                        {isHome && <><span style={{ fontSize: 13.5, color: '#dbe3ee' }}>{text}</span>{timelineIcon(e.strTimelineType)}</>}
+                      </div>
+                      <div className="font-cond" style={{ flexShrink: 0, width: 44, textAlign: 'center', fontWeight: 800, fontSize: 14, color: '#fff', background: 'rgba(255,255,255,.06)', borderRadius: 5, padding: '3px 0' }}>{(e.intClockTime || e.intTime || '')}{(e.intClockTime || e.intTime) ? "'" : ''}</div>
+                      <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-start', alignItems: 'center', gap: 9, minWidth: 0 }}>
+                        {!isHome && <>{timelineIcon(e.strTimelineType)}<span style={{ fontSize: 13.5, color: '#dbe3ee' }}>{text}</span></>}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
+          {tab === 'stats' && (
+            <div className="panel">
+              <div style={{ ...PANEL_HEAD, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span>Match Stats</span>
+                <span style={{ display: 'flex', gap: 16, fontSize: 11, color: 'var(--mut)' }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ width: 10, height: 10, borderRadius: 2, background: 'var(--accent)' }} />{home.name}</span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ width: 10, height: 10, borderRadius: 2, background: '#3a8ad9' }} />{away.name}</span>
+                </span>
+              </div>
+              <div style={{ padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 17 }}>
+                {stats.length === 0 ? <div style={{ textAlign: 'center', padding: '20px 0', color: 'var(--mut)', fontSize: 14 }}>No stats available.</div> : stats.map((s, i) => {
+                  const h = parseFloat(s.intHome) || 0, a = parseFloat(s.intAway) || 0, tot = h + a || 1
+                  const hp = Math.round(h / tot * 100)
+                  return (
+                    <div key={i}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 7 }}>
+                        <span className="font-cond" style={{ fontWeight: 800, fontSize: 17, color: '#fff', minWidth: 48 }}>{s.intHome}</span>
+                        <span style={{ fontSize: 12, color: 'var(--mut)', fontWeight: 600, letterSpacing: '.5px', textTransform: 'uppercase' }}>{s.strStat}</span>
+                        <span className="font-cond" style={{ fontWeight: 800, fontSize: 17, color: '#fff', minWidth: 48, textAlign: 'right' }}>{s.intAway}</span>
+                      </div>
+                      <div style={{ display: 'flex', height: 7, borderRadius: 4, overflow: 'hidden', background: 'rgba(255,255,255,.05)', gap: 2 }}>
+                        <div style={{ width: `${hp}%`, background: 'var(--accent)', borderRadius: 4 }} />
+                        <div style={{ width: `${100 - hp}%`, background: '#3a8ad9', borderRadius: 4 }} />
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
+          {tab === 'lineup' && (
+            <div className="panel">
+              <div style={PANEL_HEAD}>Starting Lineups</div>
+              {lineup.length === 0 ? <div style={{ textAlign: 'center', padding: '32px 0', color: 'var(--mut)', fontSize: 14 }}>No lineup data available.</div> : (
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
+                  {[{ team: home, players: homeLineup }, { team: away, players: awayLineup }].map((side, k) => (
+                    <div key={k} style={{ borderRight: k === 0 ? '1px solid var(--line)' : 'none' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '13px 16px', borderBottom: '1px solid var(--line)' }}>
+                        <TeamBadge name={side.team.name} logo={side.team.logo} size={26} />
+                        <span className="font-cond" style={{ fontWeight: 700, fontSize: 16, color: '#fff' }}>{side.team.name}</span>
+                      </div>
+                      {side.players.map((p, i) => (
+                        <div key={i} className="row-hover" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 16px', borderBottom: '1px solid rgba(255,255,255,.04)' }}>
+                          <span className="font-cond" style={{ width: 24, textAlign: 'center', fontWeight: 800, fontSize: 14, color: 'var(--mut)' }}>{p.intSquadNo || ''}</span>
+                          <span style={{ flex: 1, fontSize: 13.5, color: p.strPosition === 'Goalkeeper' ? 'var(--gold)' : '#dbe3ee' }}>{p.strPlayer}</span>
+                          <span style={{ fontSize: 10, color: 'var(--mut)', fontWeight: 700, letterSpacing: '.5px' }}>{p.strPosition?.slice(0, 3).toUpperCase()}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </main>
+
+        <aside className="col-right" style={{ position: 'static' }}>
+          {info.length > 0 && (
+            <div className="panel">
+              <div style={PANEL_HEAD}>Match Info</div>
+              {info.map(([k, v]) => (
+                <div key={k} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '11px 16px', borderBottom: '1px solid rgba(255,255,255,.04)', fontSize: 13 }}>
+                  <span style={{ color: 'var(--mut)' }}>{k}</span><span style={{ color: '#dbe3ee', fontWeight: 600, textAlign: 'right' }}>{v}</span>
+                </div>
+              ))}
+            </div>
+          )}
+          {other.length > 0 && (
+            <div className="panel">
+              <div style={{ ...PANEL_HEAD, color: '#fff', display: 'flex', justifyContent: 'space-between' }}>
+                <span>Other Live</span><Link to="/" style={{ color: 'var(--gold)', fontSize: 11.5, fontWeight: 700, textDecoration: 'none' }}>ALL »</Link>
+              </div>
+              {other.map(m => {
+                const ms = matchStatus(m)
+                return (
+                  <Link key={m.idEvent} to={`/match/${m.idEvent}`} className="row-hover" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px', borderBottom: '1px solid rgba(255,255,255,.04)', textDecoration: 'none' }}>
+                    <span style={{ ...statusBadgeStyle(ms.type), minWidth: 36, justifyContent: 'center', fontSize: 11, padding: '2px 7px' }}>{ms.text}</span>
+                    <span style={{ flex: 1, minWidth: 0, fontSize: 13 }}>
+                      <span style={{ display: 'flex', justifyContent: 'space-between', color: '#dbe3ee' }}><span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.strHomeTeam}</span><span style={{ fontWeight: 800, color: '#fff', marginLeft: 8 }}>{m.intHomeScore ?? '-'}</span></span>
+                      <span style={{ display: 'flex', justifyContent: 'space-between', color: '#dbe3ee' }}><span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.strAwayTeam}</span><span style={{ fontWeight: 800, color: '#fff', marginLeft: 8 }}>{m.intAwayScore ?? '-'}</span></span>
+                    </span>
+                  </Link>
+                )
+              })}
+            </div>
+          )}
+        </aside>
       </div>
-
-      {/* Summary Tab */}
-      {tab === 'summary' && (
-        <div className="bg-dark-800 rounded-xl border border-dark-600 p-4">
-          {timeline.length === 0 ? (
-            <div className="text-center py-8 text-slate-500 text-sm">No timeline data available.</div>
-          ) : (
-            <div className="space-y-1">
-              {timeline.sort((a, b) => parseInt(a.intClockTime) - parseInt(b.intClockTime)).map((t, i) => {
-                const isHome = t.strTeam === event.strHomeTeam
-                const icon = t.strTimelineType === 'Goal' ? '⚽'
-                  : t.strTimelineType === 'Yellow Card' ? '🟨'
-                  : t.strTimelineType === 'Red Card' ? '🟥'
-                  : t.strTimelineType === 'Substitution' ? '🔄'
-                  : '•'
-
-                return (
-                  <div key={i} className={`flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-dark-700 ${isHome ? '' : 'flex-row-reverse'}`}>
-                    <span className="text-xs text-slate-500 w-8 flex-shrink-0 text-center">{t.intClockTime}'</span>
-                    <span className="text-base">{icon}</span>
-                    <div className={`flex-1 ${isHome ? '' : 'text-right'}`}>
-                      <div className="text-sm text-white">{t.strPlayer}</div>
-                      {t.strAssist && <div className="text-xs text-slate-500">Assist: {t.strAssist}</div>}
-                      <div className="text-xs text-slate-600">{t.strTimelineType}</div>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          )}
-
-          {/* Match info */}
-          {(event.strReferee || event.intAttendance) && (
-            <div className="mt-4 pt-4 border-t border-dark-600 grid grid-cols-2 gap-2 text-xs text-slate-500">
-              {event.strReferee && <div><span className="text-slate-600">Referee:</span> {event.strReferee}</div>}
-              {event.intAttendance && <div><span className="text-slate-600">Attendance:</span> {Number(event.intAttendance).toLocaleString()}</div>}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Stats Tab */}
-      {tab === 'stats' && (
-        <div className="bg-dark-800 rounded-xl border border-dark-600 p-4">
-          {stats.length === 0 ? (
-            <div className="text-center py-8 text-slate-500 text-sm">No stats available for this match.</div>
-          ) : (
-            <div className="space-y-3">
-              {stats.map((s, i) => {
-                const home = parseFloat(s.intHome) || 0
-                const away = parseFloat(s.intAway) || 0
-                const total = home + away || 1
-                return (
-                  <div key={i}>
-                    <div className="flex justify-between text-xs text-slate-400 mb-1">
-                      <span className="font-semibold text-white">{home}</span>
-                      <span className="text-slate-500">{s.strStat}</span>
-                      <span className="font-semibold text-white">{away}</span>
-                    </div>
-                    <div className="flex gap-1 h-1.5 rounded-full overflow-hidden bg-dark-600">
-                      <div className="bg-accent rounded-full" style={{width: `${(home/total)*100}%`}} />
-                      <div className="bg-slate-500 rounded-full" style={{width: `${(away/total)*100}%`}} />
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Lineup Tab */}
-      {tab === 'lineup' && (
-        <div className="bg-dark-800 rounded-xl border border-dark-600 p-4">
-          {lineup.length === 0 ? (
-            <div className="text-center py-8 text-slate-500 text-sm">No lineup data available.</div>
-          ) : (
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <h3 className="text-sm font-semibold text-white mb-3 pb-2 border-b border-dark-600">{event.strHomeTeam}</h3>
-                <div className="space-y-1">
-                  {homeLineup.map((p, i) => (
-                    <div key={i} className="flex items-center gap-2 text-sm py-1">
-                      <span className="text-xs text-slate-600 w-5 text-center">{p.intSquadNo}</span>
-                      <span className={p.strPosition === 'Goalkeeper' ? 'text-yellow-400' : 'text-slate-300'}>{p.strPlayer}</span>
-                      {p.strSubstitute === 'True' && <span className="text-xs text-green-400 ml-auto">SUB</span>}
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <h3 className="text-sm font-semibold text-white mb-3 pb-2 border-b border-dark-600">{event.strAwayTeam}</h3>
-                <div className="space-y-1">
-                  {awayLineup.map((p, i) => (
-                    <div key={i} className="flex items-center gap-2 text-sm py-1">
-                      <span className="text-xs text-slate-600 w-5 text-center">{p.intSquadNo}</span>
-                      <span className={p.strPosition === 'Goalkeeper' ? 'text-yellow-400' : 'text-slate-300'}>{p.strPlayer}</span>
-                      {p.strSubstitute === 'True' && <span className="text-xs text-green-400 ml-auto">SUB</span>}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
     </div>
   )
 }

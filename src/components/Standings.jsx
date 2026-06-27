@@ -1,22 +1,31 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
+import TeamBadge from './TeamBadge'
+import { teamColor } from '../utils/team'
 
 const LEAGUES = [
-  { id: '4328', name: 'Premier League',   season: '2024-2025', topScorers: [{ name: 'Mohamed Salah', team: 'Liverpool', goals: 29, id: '34145506' }, { name: 'Alexander Isak', team: 'Newcastle', goals: 25, id: '34145558' }, { name: 'Erling Haaland', team: 'Man City', goals: 22, id: '34145527' }, { name: 'Cole Palmer', team: 'Chelsea', goals: 20, id: '34157883' }, { name: 'Matheus Cunha', team: 'Wolves', goals: 16, id: '34156065' }] },
-  { id: '4335', name: 'La Liga',          season: '2024-2025', topScorers: [{ name: 'Kylian Mbappé', team: 'Real Madrid', goals: 31, id: '34147178' }, { name: 'Robert Lewandowski', team: 'Barcelona', goals: 27, id: '34145831' }, { name: 'Antoine Griezmann', team: 'Atletico', goals: 14, id: '34146024' }, { name: 'Raphinha', team: 'Barcelona', goals: 14, id: '34156075' }, { name: 'Vinicius Jr', team: 'Real Madrid', goals: 13, id: '34157014' }] },
-  { id: '4332', name: 'Serie A',          season: '2024-2025', topScorers: [{ name: 'Mateo Retegui', team: 'Atalanta', goals: 25, id: '34157892' }, { name: 'Romelu Lukaku', team: 'Napoli', goals: 13, id: '34147055' }, { name: 'Marcus Thuram', team: 'Inter', goals: 13, id: '34157893' }] },
-  { id: '4331', name: 'Bundesliga',       season: '2024-2025', topScorers: [{ name: 'Harry Kane', team: 'Bayern', goals: 25, id: '34145549' }, { name: 'Serhou Guirassy', team: 'Dortmund', goals: 14, id: '34157894' }, { name: 'Omar Marmoush', team: 'Frankfurt', goals: 15, id: '34157895' }] },
-  { id: '4334', name: 'Ligue 1',          season: '2024-2025', topScorers: [{ name: 'Jonathan David', team: 'Lille', goals: 20, id: '34157896' }, { name: 'Bradley Barcola', team: 'PSG', goals: 17, id: '34157897' }] },
-  { id: '4480', name: 'Champions League', season: '2024-2025', topScorers: [{ name: 'Robert Lewandowski', team: 'Barcelona', goals: 9, id: '34145831' }, { name: 'Harry Kane', team: 'Bayern', goals: 8, id: '34145549' }, { name: 'Erling Haaland', team: 'Man City', goals: 7, id: '34145527' }] },
-  { id: '4607', name: 'World Cup 2026',   season: '2026', topScorers: [] },
+  { id: '4328', name: 'Premier League', season: '2024-2025', scorers: [{ name: 'Mohamed Salah', team: 'Liverpool', goals: 29, id: '34145506' }, { name: 'Alexander Isak', team: 'Newcastle', goals: 25, id: '34145558' }, { name: 'Erling Haaland', team: 'Man City', goals: 22, id: '34145527' }, { name: 'Cole Palmer', team: 'Chelsea', goals: 20, id: '34157883' }, { name: 'Bukayo Saka', team: 'Arsenal', goals: 16, id: '34156065' }] },
+  { id: '4335', name: 'La Liga', season: '2024-2025', scorers: [{ name: 'Kylian Mbappé', team: 'Real Madrid', goals: 31, id: '34147178' }, { name: 'Robert Lewandowski', team: 'Barcelona', goals: 27, id: '34145831' }, { name: 'Raphinha', team: 'Barcelona', goals: 14, id: '34156075' }, { name: 'Vinicius Jr', team: 'Real Madrid', goals: 13, id: '34157014' }] },
+  { id: '4332', name: 'Serie A', season: '2024-2025', scorers: [{ name: 'Mateo Retegui', team: 'Atalanta', goals: 25, id: '34157892' }, { name: 'Romelu Lukaku', team: 'Napoli', goals: 13, id: '34147055' }] },
+  { id: '4331', name: 'Bundesliga', season: '2024-2025', scorers: [{ name: 'Harry Kane', team: 'Bayern', goals: 25, id: '34145549' }, { name: 'Omar Marmoush', team: 'Frankfurt', goals: 15, id: '34157895' }] },
+  { id: '4334', name: 'Ligue 1', season: '2024-2025', scorers: [{ name: 'Jonathan David', team: 'Lille', goals: 20, id: '34157896' }, { name: 'Bradley Barcola', team: 'PSG', goals: 17, id: '34157897' }] },
+  { id: '4480', name: 'Champions League', season: '2024-2025', scorers: [{ name: 'Robert Lewandowski', team: 'Barcelona', goals: 9, id: '34145831' }, { name: 'Harry Kane', team: 'Bayern', goals: 8, id: '34145549' }] },
 ]
+
+function zoneColor(rank, total) {
+  if (rank <= 4) return '#1FA84A'
+  if (rank <= 6) return '#3a8ad9'
+  if (total && rank > total - 3) return '#ff3232'
+  return 'transparent'
+}
 
 export default function Standings() {
   const [selected, setSelected] = useState(LEAGUES[0])
   const [table, setTable] = useState([])
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState('table')
+  const [pickerOpen, setPickerOpen] = useState(false)
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -27,126 +36,85 @@ export default function Standings() {
       .finally(() => setLoading(false))
   }, [selected])
 
-  const groups = table.reduce((acc, row) => {
-    const key = row.strGroup || 'Overall'
-    if (!acc[key]) acc[key] = []
-    acc[key].push(row)
-    return acc
-  }, {})
+  const total = table.length
+  const tabBase = { flex: 1, background: 'transparent', border: 'none', fontFamily: "'Saira Condensed',sans-serif", fontWeight: 700, fontSize: 13, letterSpacing: '.5px', padding: '11px 0', cursor: 'pointer', textTransform: 'uppercase' }
+  const tabStyle = (on) => ({ ...tabBase, color: on ? '#fff' : 'var(--mut)', boxShadow: on ? 'inset 0 -2px 0 var(--accent)' : 'none' })
 
   return (
-    <aside className="bg-dark-800 rounded-lg border border-dark-600 p-4">
-      <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Stats</h3>
-
-      <select
-        value={selected.id}
-        onChange={e => setSelected(LEAGUES.find(l => l.id === e.target.value))}
-        className="w-full bg-dark-700 border border-dark-600 text-slate-300 text-xs rounded-md px-2 py-1.5 mb-3 focus:outline-none focus:border-accent"
-      >
-        {LEAGUES.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
-      </select>
-
-      {/* Tabs */}
-      <div className="flex gap-1 mb-3 bg-dark-700 rounded-md p-0.5">
-        <button onClick={() => setTab('table')}
-          className={`flex-1 py-1 rounded text-xs font-medium transition-colors ${tab === 'table' ? 'bg-accent text-white' : 'text-slate-400 hover:text-white'}`}>
-          Table
+    <div className="panel">
+      <div style={{ background: '#0a0f1a', padding: '11px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--line)', position: 'relative' }}>
+        <span className="font-cond" style={{ fontWeight: 700, fontSize: 14, letterSpacing: '1px', color: '#fff', textTransform: 'uppercase' }}>Standings</span>
+        <button onClick={() => setPickerOpen(o => !o)} style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,.06)', border: '1px solid var(--line)', borderRadius: 5, padding: '4px 10px', fontSize: 12, color: '#cfd8e4', fontWeight: 600, cursor: 'pointer' }}>
+          {selected.name}
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--mut)" strokeWidth="2"><path d="M6 9l6 6 6-6" /></svg>
         </button>
-        <button onClick={() => setTab('scorers')}
-          className={`flex-1 py-1 rounded text-xs font-medium transition-colors ${tab === 'scorers' ? 'bg-accent text-white' : 'text-slate-400 hover:text-white'}`}>
-          Top Scorers
-        </button>
+        {pickerOpen && (
+          <div className="panel" style={{ position: 'absolute', right: 14, top: '100%', marginTop: 4, zIndex: 30, minWidth: 170, boxShadow: '0 12px 32px rgba(0,0,0,.5)' }}>
+            {LEAGUES.map(l => (
+              <button key={l.id} onClick={() => { setSelected(l); setPickerOpen(false) }} className="row-hover"
+                style={{ display: 'block', width: '100%', textAlign: 'left', padding: '8px 12px', background: 'transparent', border: 'none', color: l.id === selected.id ? '#fff' : '#cfd8e4', fontSize: 12.5, cursor: 'pointer' }}>
+                {l.name}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* Table Tab */}
+      <div style={{ display: 'flex', borderBottom: '1px solid var(--line)' }}>
+        <button onClick={() => setTab('table')} style={tabStyle(tab === 'table')}>Table</button>
+        <button onClick={() => setTab('scorers')} style={tabStyle(tab === 'scorers')}>Top Scorers</button>
+      </div>
+
       {tab === 'table' && (
-        <>
-          {loading && (
-            <div className="space-y-2">
-              {Array.from({length: 6}).map((_, i) => (
-                <div key={i} className="h-4 bg-dark-600 rounded animate-pulse" />
-              ))}
-            </div>
-          )}
-
-          {!loading && table.length === 0 && (
-            <p className="text-xs text-slate-600 text-center py-4">No standings available.</p>
-          )}
-
-          {!loading && Object.entries(groups).map(([groupName, rows]) => (
-            <div key={groupName} className="mb-4">
-              {groupName !== 'Overall' && (
-                <div className="text-xs font-semibold text-accent mb-1">{groupName}</div>
-              )}
-              <table className="w-full text-xs">
-                <thead>
-                  <tr className="text-slate-600 border-b border-dark-600">
-                    <th className="text-left py-1 w-5">#</th>
-                    <th className="text-left py-1">Team</th>
-                    <th className="text-center py-1 w-5">P</th>
-                    <th className="text-center py-1 w-5">W</th>
-                    <th className="text-center py-1 w-5">D</th>
-                    <th className="text-center py-1 w-5">L</th>
-                    <th className="text-center py-1 w-8">GD</th>
-                    <th className="text-center py-1 w-6 font-bold text-slate-400">Pts</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {rows.map((row, i) => (
-                    <tr key={i} className="border-b border-dark-700 hover:bg-dark-700 transition-colors cursor-pointer"
-                        onClick={() => row.idTeam && navigate(`/team/${row.idTeam}`)}>
-                      <td className="py-1.5 text-slate-500">{row.intRank}</td>
-                      <td className="py-1.5">
-                        <div className="flex items-center gap-1.5">
-                          {(row.strBadge || row.strTeamBadge) && (
-                            <img src={row.strBadge || row.strTeamBadge} alt={row.strTeam} className="w-4 h-4 object-contain" onError={e => e.target.style.display='none'} />
-                          )}
-                          <span className="text-slate-300 truncate max-w-[80px]">{row.strTeam}</span>
-                        </div>
-                      </td>
-                      <td className="py-1.5 text-center text-slate-400">{row.intPlayed}</td>
-                      <td className="py-1.5 text-center text-slate-400">{row.intWin}</td>
-                      <td className="py-1.5 text-center text-slate-400">{row.intDraw}</td>
-                      <td className="py-1.5 text-center text-slate-400">{row.intLoss}</td>
-                      <td className="py-1.5 text-center text-slate-400">
-                        {row.intGoalDifference > 0 ? `+${row.intGoalDifference}` : row.intGoalDifference}
-                      </td>
-                      <td className="py-1.5 text-center font-bold text-white">{row.intPoints}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ))}
-        </>
-      )}
-
-      {/* Top Scorers Tab */}
-      {tab === 'scorers' && (
-        <div>
-          {selected.topScorers.length === 0 ? (
-            <p className="text-xs text-slate-600 text-center py-4">No scorer data available.</p>
-          ) : (
-            <div className="space-y-1">
-              {selected.topScorers.map((s, i) => (
-                <button key={i} onClick={() => navigate(`/player/${s.id}`)}
-                  className="w-full flex items-center gap-2 py-2 px-1 hover:bg-dark-700 rounded transition-colors text-left">
-                  <span className="text-xs text-slate-600 w-4 text-center">{i + 1}</span>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-xs text-white truncate">{s.name}</div>
-                    <div className="text-xs text-slate-600 truncate">{s.team}</div>
-                  </div>
-                  <div className="flex items-center gap-1 flex-shrink-0">
-                    <span className="text-sm font-bold text-white">{s.goals}</span>
-                    <span className="text-xs text-slate-600">⚽</span>
-                  </div>
-                </button>
-              ))}
-            </div>
-          )}
-          <p className="text-xs text-slate-700 mt-3 text-center">Season 2024/25 final stats</p>
+        <div style={{ padding: '4px 0' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '24px 1fr 22px 26px 24px', gap: 6, padding: '7px 14px', fontSize: 10.5, color: 'var(--mut)', fontWeight: 700, letterSpacing: '.5px', textTransform: 'uppercase' }}>
+            <span>#</span><span>Team</span><span style={{ textAlign: 'center' }}>P</span><span style={{ textAlign: 'center' }}>GD</span><span style={{ textAlign: 'center' }}>Pts</span>
+          </div>
+          {loading && Array.from({ length: 6 }).map((_, i) => <div key={i} style={{ height: 30, margin: '2px 14px', background: 'rgba(255,255,255,.04)', borderRadius: 4 }} />)}
+          {!loading && table.length === 0 && <p style={{ fontSize: 12, color: 'var(--mut)', textAlign: 'center', padding: '16px 0' }}>No standings available.</p>}
+          {!loading && table.map((r, i) => {
+            const rank = Number(r.intRank) || i + 1
+            return (
+              <div key={i} onClick={() => r.idTeam && navigate(`/team/${r.idTeam}`)} className="row-hover"
+                style={{ display: 'grid', gridTemplateColumns: '24px 1fr 22px 26px 24px', gap: 6, padding: '7px 14px', alignItems: 'center', fontSize: 13, borderTop: '1px solid rgba(255,255,255,.04)', cursor: 'pointer' }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                  <span style={{ width: 3, height: 14, borderRadius: 2, background: zoneColor(rank, total) }} />
+                  <span style={{ color: 'var(--mut)', fontWeight: 600 }}>{rank}</span>
+                </span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+                  <TeamBadge name={r.strTeam} logo={r.strBadge ? r.strBadge + '/tiny' : r.strTeamBadge} size={18} />
+                  <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: '#dbe3ee' }}>{r.strTeam}</span>
+                </span>
+                <span style={{ textAlign: 'center', color: 'var(--mut)' }}>{r.intPlayed}</span>
+                <span style={{ textAlign: 'center', color: 'var(--mut)' }}>{r.intGoalDifference > 0 ? `+${r.intGoalDifference}` : r.intGoalDifference}</span>
+                <span style={{ textAlign: 'center', fontWeight: 800, color: '#fff' }}>{r.intPoints}</span>
+              </div>
+            )
+          })}
         </div>
       )}
-    </aside>
+
+      {tab === 'scorers' && (
+        <div style={{ padding: '4px 0' }}>
+          {selected.scorers.length === 0 && <p style={{ fontSize: 12, color: 'var(--mut)', textAlign: 'center', padding: '16px 0' }}>No scorer data.</p>}
+          {selected.scorers.map((s, i) => (
+            <button key={i} onClick={() => navigate(`/player/${s.id}`)} className="row-hover"
+              style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '9px 14px', borderTop: '1px solid rgba(255,255,255,.04)', background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
+              <span style={{ width: 18, textAlign: 'center', color: 'var(--mut)', fontWeight: 700, fontSize: 12 }}>{i + 1}</span>
+              <span style={{ width: 28, height: 28, borderRadius: '50%', background: teamColor(s.team), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 800, color: '#fff', fontFamily: "'Saira Condensed',sans-serif", flexShrink: 0 }}>{s.name.split(' ').map(w => w[0]).slice(0, 2).join('')}</span>
+              <span style={{ flex: 1, minWidth: 0 }}>
+                <span style={{ display: 'block', fontSize: 13.5, fontWeight: 600, color: '#dbe3ee', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.name}</span>
+                <span style={{ display: 'block', fontSize: 11, color: 'var(--mut)' }}>{s.team}</span>
+              </span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="var(--gold)"><circle cx="12" cy="12" r="10" /></svg>
+                <span className="font-cond" style={{ fontWeight: 800, fontSize: 17, color: '#fff' }}>{s.goals}</span>
+              </span>
+            </button>
+          ))}
+          <p style={{ fontSize: 11, color: '#55617a', textAlign: 'center', marginTop: 6 }}>Season 2024/25 final</p>
+        </div>
+      )}
+    </div>
   )
 }

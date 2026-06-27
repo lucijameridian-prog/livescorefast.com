@@ -1,6 +1,20 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import axios from 'axios'
+import TeamBadge from '../components/TeamBadge'
+import { teamColor } from '../utils/team'
+
+const PANEL_HEAD = { background: '#0a0f1a', padding: '10px 16px', fontFamily: "'Saira Condensed',sans-serif", fontWeight: 700, fontSize: 13, letterSpacing: '1px', color: 'var(--gold)', textTransform: 'uppercase', borderBottom: '1px solid var(--line)' }
+
+const POS_ORDER = ['Goalkeeper', 'Defender', 'Midfielder', 'Forward', 'Attacker']
+function posGroup(p) {
+  const s = (p || '').toLowerCase()
+  if (s.includes('keeper')) return 'Goalkeepers'
+  if (s.includes('def') || s.includes('back')) return 'Defenders'
+  if (s.includes('mid')) return 'Midfielders'
+  if (s.includes('for') || s.includes('attack') || s.includes('wing') || s.includes('striker')) return 'Forwards'
+  return 'Squad'
+}
 
 export default function TeamPage() {
   const { id } = useParams()
@@ -13,129 +27,109 @@ export default function TeamPage() {
 
   useEffect(() => {
     setLoading(true)
+    window.scrollTo(0, 0)
     Promise.all([
       axios.get(`https://www.thesportsdb.com/api/v1/json/3/lookupteam.php?id=${id}`),
       axios.get(`https://www.thesportsdb.com/api/v1/json/3/lookup_all_players.php?id=${id}`),
       axios.get(`https://www.thesportsdb.com/api/v1/json/3/eventslast.php?id=${id}`),
-    ]).then(([teamRes, playersRes, eventsRes]) => {
-      setTeam((teamRes.data.teams || [])[0] || null)
-      setPlayers((playersRes.data.player || []).filter(p => p.strStatus === 'Active'))
-      setEvents(eventsRes.data.results || [])
+    ]).then(([t, p, e]) => {
+      setTeam((t.data.teams || [])[0] || null)
+      setPlayers((p.data.player || []).filter(x => x.strStatus !== 'Retired'))
+      setEvents(e.data.results || [])
     }).catch(() => {}).finally(() => setLoading(false))
   }, [id])
 
-  if (loading) return (
-    <div className="flex items-center justify-center py-20">
-      <div className="animate-spin w-8 h-8 border-2 border-accent border-t-transparent rounded-full" />
-    </div>
-  )
+  if (loading) return <div style={{ display: 'flex', justifyContent: 'center', padding: '80px 0' }}><div style={{ width: 32, height: 32, border: '3px solid var(--accent)', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin .8s linear infinite' }} /></div>
+  if (!team) return <div style={{ textAlign: 'center', padding: '80px 0', color: 'var(--mut)' }}><p>Team not found.</p><button onClick={() => navigate(-1)} style={{ marginTop: 16, color: 'var(--gold)', background: 'none', border: 'none', cursor: 'pointer' }}>← Go back</button></div>
 
-  if (!team) return (
-    <div className="text-center py-20 text-slate-500">
-      <p>Team not found.</p>
-      <button onClick={() => navigate(-1)} className="mt-4 text-accent text-sm hover:underline">← Go back</button>
-    </div>
-  )
+  const color = teamColor(team.strTeam || '')
+  const meta = [
+    ['Country', team.strCountry], ['Founded', team.intFormedYear], ['Stadium', team.strStadium], ['League', team.strLeague],
+  ].filter(m => m[1])
 
-  const positionOrder = ['Goalkeeper', 'Defender', 'Midfielder', 'Forward', 'Attacker']
-  const sorted = [...players].sort((a, b) => {
-    const ai = positionOrder.findIndex(p => a.strPosition?.includes(p))
-    const bi = positionOrder.findIndex(p => b.strPosition?.includes(p))
-    return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi)
-  })
+  // group squad
+  const groups = {}
+  players.forEach(p => { const g = posGroup(p.strPosition); (groups[g] = groups[g] || []).push(p) })
+  const orderedGroups = ['Goalkeepers', 'Defenders', 'Midfielders', 'Forwards', 'Squad'].filter(g => groups[g])
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <button onClick={() => navigate(-1)} className="text-slate-400 hover:text-white text-sm mb-4 flex items-center gap-1">
-        ← Back
-      </button>
-
-      {/* Header */}
-      <div className="bg-dark-800 rounded-xl border border-dark-600 p-6 mb-4">
-        <div className="flex items-center gap-6">
-          {team.strBadge && (
-            <img src={team.strBadge} alt={team.strTeam} className="w-20 h-20 object-contain flex-shrink-0"
-              onError={e => e.target.style.display='none'} />
-          )}
-          <div>
-            <h1 className="text-2xl font-bold text-white">{team.strTeam}</h1>
-            <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1">
-              {team.strLeague && <span className="text-sm text-slate-400">🏆 {team.strLeague}</span>}
-              {team.strCountry && <span className="text-sm text-slate-400">🌍 {team.strCountry}</span>}
-              {team.intFormedYear && <span className="text-sm text-slate-400">📅 Founded {team.intFormedYear}</span>}
-              {team.strStadium && <span className="text-sm text-slate-400">🏟 {team.strStadium}</span>}
+    <div>
+      {/* HERO */}
+      <div style={{ background: `radial-gradient(120% 160% at 18% -30%,${color} 0%,#0d1320 55%,#090d16 100%)`, borderBottom: '1px solid var(--line)' }}>
+        <div style={{ maxWidth: 1180, margin: '0 auto', padding: '26px 18px', display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap' }}>
+          <TeamBadge name={team.strTeam} logo={team.strBadge} size={96} fontSize="32px" />
+          <div style={{ minWidth: 0 }}>
+            {team.strLeague && <div style={{ fontSize: 12, color: 'var(--gold)', fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', marginBottom: 5 }}>{team.strLeague}</div>}
+            <h1 className="font-cond" style={{ fontWeight: 800, fontSize: 42, lineHeight: .95, color: '#fff', margin: 0 }}>{team.strTeam}</h1>
+            <div style={{ display: 'flex', gap: 22, marginTop: 14, flexWrap: 'wrap' }}>
+              {meta.map(([k, v]) => (
+                <div key={k} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <span style={{ fontSize: 10.5, color: 'var(--mut)', letterSpacing: '.5px', textTransform: 'uppercase' }}>{k}</span>
+                  <span style={{ fontSize: 15, fontWeight: 600, color: '#dbe3ee' }}>{v}</span>
+                </div>
+              ))}
             </div>
           </div>
         </div>
-
-        {team.strDescriptionEN && (
-          <p className="mt-4 text-sm text-slate-400 line-clamp-3 leading-relaxed">
-            {team.strDescriptionEN}
-          </p>
-        )}
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-1 mb-4 bg-dark-800 rounded-lg p-1 border border-dark-600">
-        {['squad', 'results'].map(t => (
-          <button key={t} onClick={() => setTab(t)}
-            className={`flex-1 py-2 rounded-md text-sm font-medium capitalize transition-colors
-              ${tab === t ? 'bg-accent text-white' : 'text-slate-400 hover:text-white'}`}>
-            {t === 'squad' ? `Squad (${players.length})` : `Last Results (${events.length})`}
-          </button>
-        ))}
-      </div>
+      {/* CONTENT */}
+      <div className="detail-grid">
+        <main style={{ minWidth: 0 }}>
+          <div style={{ display: 'flex', gap: 4, marginBottom: 14 }}>
+            {[['squad', `Squad (${players.length})`], ['results', 'Last Results']].map(([id2, label]) => {
+              const active = tab === id2
+              return <button key={id2} onClick={() => setTab(id2)} className="font-cond" style={{ background: active ? 'var(--accent)' : 'rgba(255,255,255,.05)', border: `1px solid ${active ? 'var(--accent)' : 'var(--line)'}`, color: active ? '#fff' : '#b9c4d4', fontWeight: 700, fontSize: 14, letterSpacing: '.5px', padding: '9px 20px', borderRadius: 7, cursor: 'pointer', textTransform: 'uppercase' }}>{label}</button>
+            })}
+          </div>
 
-      {/* Squad */}
-      {tab === 'squad' && (
-        <div className="bg-dark-800 rounded-xl border border-dark-600 p-4">
-          {sorted.length === 0 ? (
-            <p className="text-center py-8 text-slate-500 text-sm">No squad data available.</p>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {sorted.map(p => (
-                <div key={p.idPlayer} className="flex items-center gap-3 p-2 rounded-lg hover:bg-dark-700 transition-colors">
-                  {p.strThumb
-                    ? <img src={p.strThumb} alt={p.strPlayer} className="w-10 h-10 rounded-full object-cover flex-shrink-0"
-                        onError={e => e.target.src = ''} />
-                    : <div className="w-10 h-10 rounded-full bg-dark-600 flex items-center justify-center text-slate-600 text-xs flex-shrink-0">
-                        {p.strPlayer?.[0]}
-                      </div>
-                  }
-                  <div className="min-w-0">
-                    <div className="text-sm text-white truncate">{p.strPlayer}</div>
-                    <div className="text-xs text-slate-500">{p.strPosition} · {p.strNationality}</div>
+          {tab === 'squad' && (
+            players.length === 0 ? <div className="panel" style={{ padding: 30, textAlign: 'center', color: 'var(--mut)' }}>No squad data available.</div> :
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              {orderedGroups.map(g => (
+                <div key={g} className="panel">
+                  <div style={PANEL_HEAD}>{g}</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(220px,1fr))' }}>
+                    {groups[g].map(p => (
+                      <Link key={p.idPlayer} to={`/player/${p.idPlayer}`} className="row-hover" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '11px 16px', borderBottom: '1px solid rgba(255,255,255,.04)', borderRight: '1px solid rgba(255,255,255,.04)', textDecoration: 'none' }}>
+                        <span className="font-cond" style={{ width: 30, textAlign: 'center', fontWeight: 800, fontSize: 17, color: 'var(--mut)' }}>{p.strNumber || ''}</span>
+                        {p.strThumb ? <img src={p.strThumb} alt="" style={{ width: 34, height: 34, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} onError={e => { e.target.style.display = 'none' }} /> : <TeamBadge name={p.strPlayer} size={34} />}
+                        <span style={{ flex: 1, minWidth: 0 }}>
+                          <span style={{ display: 'block', fontSize: 14, fontWeight: 600, color: '#dbe3ee', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.strPlayer}</span>
+                          <span style={{ display: 'block', fontSize: 11, color: 'var(--mut)' }}>{p.strNationality} · {p.strPosition}</span>
+                        </span>
+                      </Link>
+                    ))}
                   </div>
-                  {p.strNumber && <span className="ml-auto text-xs font-bold text-slate-500">#{p.strNumber}</span>}
                 </div>
               ))}
             </div>
           )}
-        </div>
-      )}
 
-      {/* Results */}
-      {tab === 'results' && (
-        <div className="bg-dark-800 rounded-xl border border-dark-600 divide-y divide-dark-600">
-          {events.length === 0 ? (
-            <p className="text-center py-8 text-slate-500 text-sm">No recent results.</p>
-          ) : events.map(e => {
-            const home = e.intHomeScore
-            const away = e.intAwayScore
-            return (
-              <Link key={e.idEvent} to={`/match/${e.idEvent}`}
-                className="flex items-center gap-3 px-4 py-3 hover:bg-dark-700 transition-colors">
-                <div className="flex-1 text-sm text-slate-300 truncate">{e.strHomeTeam}</div>
-                <div className="text-sm font-bold text-white flex-shrink-0 w-12 text-center">
-                  {home ?? '-'} – {away ?? '-'}
-                </div>
-                <div className="flex-1 text-sm text-slate-300 truncate text-right">{e.strAwayTeam}</div>
-                <div className="text-xs text-slate-600 ml-2 flex-shrink-0">{e.dateEvent}</div>
-              </Link>
-            )
-          })}
-        </div>
-      )}
+          {tab === 'results' && (
+            <div className="panel">
+              <div style={PANEL_HEAD}>Recent Results</div>
+              {events.length === 0 ? <div style={{ padding: 30, textAlign: 'center', color: 'var(--mut)' }}>No recent results.</div> : events.map(e => (
+                <Link key={e.idEvent} to={`/match/${e.idEvent}`} className="row-hover" style={{ display: 'grid', gridTemplateColumns: '90px 1fr auto 1fr', alignItems: 'center', gap: 12, padding: '12px 16px', borderBottom: '1px solid rgba(255,255,255,.04)', textDecoration: 'none' }}>
+                  <span style={{ fontSize: 11.5, color: 'var(--mut)' }}>{e.dateEvent}</span>
+                  <span style={{ fontSize: 14, color: '#dbe3ee', textAlign: 'right', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{e.strHomeTeam}</span>
+                  <span className="font-cond" style={{ fontWeight: 800, fontSize: 17, color: '#fff', background: 'rgba(255,255,255,.06)', padding: '2px 12px', borderRadius: 5 }}>{e.intHomeScore ?? '-'} - {e.intAwayScore ?? '-'}</span>
+                  <span style={{ fontSize: 14, color: '#dbe3ee', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{e.strAwayTeam}</span>
+                </Link>
+              ))}
+            </div>
+          )}
+        </main>
+
+        <aside className="col-right" style={{ position: 'static' }}>
+          {team.strDescriptionEN && (
+            <div className="panel">
+              <div style={PANEL_HEAD}>About</div>
+              <p style={{ padding: 16, fontSize: 13.5, lineHeight: 1.6, color: '#aeb9c9', margin: 0, maxHeight: 360, overflow: 'auto' }}>{team.strDescriptionEN.slice(0, 600)}…</p>
+            </div>
+          )}
+        </aside>
+      </div>
     </div>
   )
 }

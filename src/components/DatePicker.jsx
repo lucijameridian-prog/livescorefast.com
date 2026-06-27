@@ -1,78 +1,45 @@
+const DOWS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+const QUICKS = ['Yesterday', 'Today', 'Tomorrow', 'This Week']
+
+function offset(date, days) {
+  const d = new Date(date)
+  d.setDate(d.getDate() + days)
+  return d
+}
+const fmt = (d) => d.toISOString().split('T')[0]
+
 export default function DatePicker({ selected, onChange }) {
   const today = new Date()
+  today.setHours(0, 0, 0, 0)
 
-  const fmt = (d) => d.toISOString().split('T')[0]
+  const quickFor = { Yesterday: fmt(offset(today, -1)), Today: fmt(today), Tomorrow: fmt(offset(today, 1)) }
+  const activeQuick = Object.keys(quickFor).find(k => quickFor[k] === selected) || (selected ? 'This Week' : 'Today')
 
-  // Quick tabs
-  const quickDates = [
-    { label: 'Yesterday', date: offset(today, -1) },
-    { label: 'Today',     date: today },
-    { label: 'Tomorrow',  date: offset(today, 1) },
-    { label: 'This Week', date: null }, // special
-  ]
+  const strip = []
+  for (let off = -3; off <= 5; off++) strip.push(offset(today, off))
 
-  // Full date row: 3 days back + today + 6 days forward
-  const allDates = Array.from({ length: 10 }, (_, i) => offset(today, i - 3))
-
-  const selectedInView = allDates.find(d => fmt(d) === selected)
-  const isThisWeek = !selectedInView && selected !== fmt(today)
+  const quickStyle = (active) => ({ flex: 1, background: active ? 'rgba(226,35,26,.12)' : 'transparent', border: 'none', fontFamily: "'Saira Condensed',sans-serif", fontWeight: 700, fontSize: 13, letterSpacing: '.5px', padding: '11px 0', cursor: 'pointer', textTransform: 'uppercase', color: active ? '#fff' : 'var(--mut)', boxShadow: active ? 'inset 0 -2px 0 var(--accent)' : 'none' })
 
   return (
-    <div className="space-y-2">
-      {/* Quick tabs */}
-      <div className="flex gap-1">
-        {quickDates.map(({ label, date }) => {
-          const val = date ? fmt(date) : null
-          const active = label === 'This Week'
-            ? isThisWeek
-            : selected === val
-
-          return (
-            <button key={label} onClick={() => date && onChange(val)}
-              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors
-                ${active ? 'bg-accent text-white' : 'bg-dark-700 text-slate-400 hover:text-white hover:bg-dark-600'}
-                ${label === 'This Week' ? 'ml-auto' : ''}`}>
-              {label}
-            </button>
-          )
-        })}
+    <div className="panel">
+      <div style={{ display: 'flex', borderBottom: '1px solid var(--line)' }}>
+        {QUICKS.map(q => (
+          <button key={q} onClick={() => quickFor[q] && onChange(quickFor[q])} style={quickStyle(activeQuick === q)}>{q}</button>
+        ))}
       </div>
-
-      {/* Scrollable date row */}
-      <div className="flex items-center gap-1 overflow-x-auto pb-1" style={{scrollbarWidth: 'none'}}>
-        {allDates.map(d => {
+      <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '9px 12px', overflowX: 'auto' }} className="nav-scroll">
+        {strip.map(d => {
           const val = fmt(d)
-          const diff = Math.round((d - today) / 86400000)
-          const isSelected = selected === val
-
-          const dayLabel = diff === 0 ? 'Today'
-            : diff === -1 ? 'Yesterday'
-            : diff === 1 ? 'Tomorrow'
-            : d.toLocaleDateString('en', { weekday: 'short' })
-
-          const dateLabel = d.toLocaleDateString('en', { day: 'numeric', month: 'short' })
-
+          const active = selected === val
           return (
             <button key={val} onClick={() => onChange(val)}
-              className={`flex flex-col items-center px-3 py-1.5 rounded-md text-xs whitespace-nowrap transition-colors flex-shrink-0
-                ${isSelected
-                  ? 'bg-accent text-white'
-                  : diff === 0
-                    ? 'bg-dark-700 border border-accent/40 text-slate-300 hover:bg-dark-600'
-                    : 'bg-dark-700 text-slate-400 hover:text-white hover:bg-dark-600'
-                }`}>
-              <span className="font-medium">{dayLabel}</span>
-              <span className="text-xs opacity-70">{dateLabel}</span>
+              style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, minWidth: 48, padding: '6px 0', borderRadius: 7, border: `1px solid ${active ? 'var(--accent)' : 'var(--line)'}`, background: active ? 'rgba(226,35,26,.14)' : 'transparent', color: active ? '#fff' : '#b9c4d4', cursor: 'pointer', flexShrink: 0 }}>
+              <span style={{ fontSize: 10, letterSpacing: '.5px', opacity: .8 }}>{DOWS[d.getDay()]}</span>
+              <span className="font-cond" style={{ fontWeight: 800, fontSize: 17 }}>{d.getDate()}</span>
             </button>
           )
         })}
       </div>
     </div>
   )
-}
-
-function offset(date, days) {
-  const d = new Date(date)
-  d.setDate(d.getDate() + days)
-  return d
 }
