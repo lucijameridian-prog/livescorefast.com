@@ -2,12 +2,13 @@ import { useEffect, useState } from 'react'
 import axios from 'axios'
 
 const LEAGUES = [
-  { id: '4607', name: 'World Cup 2026', season: '2026' },
   { id: '4328', name: 'Premier League', season: '2024-2025' },
   { id: '4335', name: 'La Liga',        season: '2024-2025' },
   { id: '4332', name: 'Serie A',        season: '2024-2025' },
   { id: '4331', name: 'Bundesliga',     season: '2024-2025' },
   { id: '4334', name: 'Ligue 1',        season: '2024-2025' },
+  { id: '4480', name: 'Champions League', season: '2024-2025' },
+  { id: '4607', name: 'World Cup 2026', season: '2026' },
 ]
 
 export default function Standings() {
@@ -80,8 +81,8 @@ export default function Standings() {
                   <td className="py-1.5 text-slate-500">{row.intRank}</td>
                   <td className="py-1.5">
                     <div className="flex items-center gap-1.5">
-                      {row.strTeamBadge && (
-                        <img src={row.strTeamBadge} alt={row.strTeam} className="w-4 h-4 object-contain" onError={e => e.target.style.display='none'} />
+                      {(row.strBadge || row.strTeamBadge) && (
+                        <img src={row.strBadge || row.strTeamBadge} alt={row.strTeam} className="w-4 h-4 object-contain" onError={e => e.target.style.display='none'} />
                       )}
                       <span className="text-slate-300 truncate max-w-[80px]">{row.strTeam}</span>
                     </div>
