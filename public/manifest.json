@@ -4,8 +4,8 @@
   "description": "Live sports scores for football, basketball, hockey and more",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0f1117",
-  "theme_color": "#863bff",
+  "background_color": "#070a11",
+  "theme_color": "#E2231A",
   "orientation": "portrait-primary",
   "icons": [
     {
