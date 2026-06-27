@@ -18,18 +18,18 @@ export default function BannerCarousel() {
   }, [n])
 
   return (
-    <div style={{ position: 'relative', borderRadius: 10, overflow: 'hidden', height: 208, background: '#0a0f1a' }}>
+    <div style={{ position: 'relative', borderRadius: 10, overflow: 'hidden', height: 'clamp(168px,40vw,208px)', background: '#0a0f1a' }}>
       <div style={{ display: 'flex', height: '100%', transition: 'transform .5s cubic-bezier(.4,0,.2,1)', transform: `translateX(-${idx * 100}%)` }}>
         {BANNERS.map((b, i) => (
-          <div key={i} style={{ minWidth: '100%', height: '100%', position: 'relative', background: b.grad, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '0 42px', overflow: 'hidden' }}>
+          <div key={i} style={{ minWidth: '100%', height: '100%', position: 'relative', background: b.grad, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '0 clamp(20px,5vw,42px)', overflow: 'hidden' }}>
             <div style={{ position: 'absolute', right: -40, top: -40, width: 280, height: 280, borderRadius: '50%', background: b.blob, opacity: .5, filter: 'blur(8px)' }} />
-            <div className="font-cond" style={{ position: 'absolute', right: 38, bottom: 24, fontWeight: 800, fontSize: 120, lineHeight: .8, color: 'rgba(255,255,255,.07)', letterSpacing: '-2px', pointerEvents: 'none' }}>{b.ghost}</div>
-            <div style={{ position: 'relative', zIndex: 2, maxWidth: '62%' }}>
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 7, background: 'rgba(0,0,0,.3)', border: '1px solid rgba(255,255,255,.18)', borderRadius: 20, padding: '4px 12px', fontSize: 11, fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: '#fff', marginBottom: 12 }}>{b.eyebrow}</div>
-              <div className="font-cond" style={{ fontWeight: 800, fontSize: 46, lineHeight: .92, color: '#fff', textShadow: '0 2px 18px rgba(0,0,0,.4)', letterSpacing: '.5px' }}>
+            <div className="font-cond" style={{ position: 'absolute', right: 'clamp(16px,4vw,38px)', bottom: 24, fontWeight: 800, fontSize: 'clamp(64px,18vw,120px)', lineHeight: .8, color: 'rgba(255,255,255,.07)', letterSpacing: '-2px', pointerEvents: 'none' }}>{b.ghost}</div>
+            <div style={{ position: 'relative', zIndex: 2, maxWidth: '74%' }}>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 7, background: 'rgba(0,0,0,.3)', border: '1px solid rgba(255,255,255,.18)', borderRadius: 20, padding: '4px 12px', fontSize: 'clamp(9px,2.4vw,11px)', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: '#fff', marginBottom: 12 }}>{b.eyebrow}</div>
+              <div className="font-cond" style={{ fontWeight: 800, fontSize: 'clamp(26px,7vw,46px)', lineHeight: .92, color: '#fff', textShadow: '0 2px 18px rgba(0,0,0,.4)', letterSpacing: '.5px' }}>
                 {b.title.map((l, j) => <div key={j}>{l}</div>)}
               </div>
-              <div style={{ fontSize: 14.5, color: 'rgba(255,255,255,.85)', marginTop: 8, fontWeight: 500 }}>{b.sub}</div>
+              <div style={{ fontSize: 'clamp(12px,3vw,14.5px)', color: 'rgba(255,255,255,.85)', marginTop: 8, fontWeight: 500 }}>{b.sub}</div>
             </div>
           </div>
         ))}

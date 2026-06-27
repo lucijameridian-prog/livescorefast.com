@@ -51,7 +51,7 @@ export default function PlayerPage() {
           </div>
           <div style={{ minWidth: 0 }}>
             {player.strTeam && <Link to="/football" style={{ display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: 12.5, color: 'var(--gold)', fontWeight: 700, letterSpacing: '.5px', textTransform: 'uppercase', textDecoration: 'none', marginBottom: 6 }}><span style={{ width: 16, height: 16, borderRadius: '50%', background: teamColor(player.strTeam), display: 'inline-block' }} />{player.strTeam}</Link>}
-            <h1 className="font-cond" style={{ fontWeight: 800, fontSize: 44, lineHeight: .95, color: '#fff', margin: 0 }}>{player.strPlayer}</h1>
+            <h1 className="font-cond" style={{ fontWeight: 800, fontSize: 'clamp(28px,7vw,44px)', lineHeight: .95, color: '#fff', margin: 0 }}>{player.strPlayer}</h1>
             <div style={{ display: 'flex', gap: 9, marginTop: 12, flexWrap: 'wrap' }}>
               {player.strPosition && <span className="font-cond" style={{ background: 'var(--accent)', color: '#fff', fontWeight: 700, fontSize: 13, padding: '4px 13px', borderRadius: 6, textTransform: 'uppercase' }}>{player.strPosition}</span>}
               {player.strNationality && <span style={{ background: 'rgba(255,255,255,.06)', border: '1px solid var(--line)', color: '#cfd8e4', fontSize: 13, padding: '4px 13px', borderRadius: 6 }}>{player.strNationality}</span>}

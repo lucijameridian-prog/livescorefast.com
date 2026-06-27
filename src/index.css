@@ -127,7 +127,14 @@ body {
 }
 @media (max-width: 820px) {
   .detail-grid { grid-template-columns: 1fr; }
-  .detail-grid .col-right { display: none; }
+  /* keep the right rail (match info / other live / about) — stack it below */
+  .detail-grid .col-right { position: static !important; }
+}
+
+/* news featured card stacks on mobile */
+@media (max-width: 720px) {
+  .news-featured { grid-template-columns: 1fr !important; }
+  .news-featured > div:first-child { min-height: 180px !important; }
 }
 
 /* shared panel helpers */

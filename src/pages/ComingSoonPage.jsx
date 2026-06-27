@@ -12,7 +12,7 @@ export default function ComingSoonPage() {
           <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#15300a" strokeWidth="1.8"><circle cx="12" cy="12" r="9" /><path d="M5 5a13 13 0 0 1 0 14M19 5a13 13 0 0 0 0 14" /></svg>
         </div>
         <div className="font-cond" style={{ display: 'inline-block', background: 'rgba(181,230,29,.14)', border: '1px solid rgba(181,230,29,.35)', color: '#b5e61d', fontWeight: 700, fontSize: 13, letterSpacing: '1.5px', padding: '5px 16px', borderRadius: 20, textTransform: 'uppercase', marginBottom: 20 }}>Coming Soon</div>
-        <h1 className="font-cond" style={{ fontWeight: 800, fontSize: 58, lineHeight: .95, color: '#fff', margin: '0 0 16px', textTransform: 'uppercase' }}>Tennis Live Scores</h1>
+        <h1 className="font-cond" style={{ fontWeight: 800, fontSize: 'clamp(34px,9vw,58px)', lineHeight: .95, color: '#fff', margin: '0 0 16px', textTransform: 'uppercase' }}>Tennis Live Scores</h1>
         <p style={{ fontSize: 16, lineHeight: 1.6, color: '#aeb9c9', margin: '0 auto 32px', maxWidth: 460 }}>We're building live tennis coverage — Grand Slams, ATP &amp; WTA tours, set-by-set scores and full draws. It'll land here soon.</p>
         <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
           <Link to="/" className="font-cond" style={{ background: 'var(--gold)', color: '#1a1205', fontWeight: 800, fontSize: 15, letterSpacing: '.5px', borderRadius: 7, padding: '12px 26px', textDecoration: 'none', textTransform: 'uppercase' }}>Back to Live Scores</Link>

@@ -60,7 +60,7 @@ export default function TeamPage() {
           <TeamBadge name={team.strTeam} logo={team.strBadge} size={96} fontSize="32px" />
           <div style={{ minWidth: 0 }}>
             {team.strLeague && <div style={{ fontSize: 12, color: 'var(--gold)', fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', marginBottom: 5 }}>{team.strLeague}</div>}
-            <h1 className="font-cond" style={{ fontWeight: 800, fontSize: 42, lineHeight: .95, color: '#fff', margin: 0 }}>{team.strTeam}</h1>
+            <h1 className="font-cond" style={{ fontWeight: 800, fontSize: 'clamp(28px,7vw,42px)', lineHeight: .95, color: '#fff', margin: 0 }}>{team.strTeam}</h1>
             <div style={{ display: 'flex', gap: 22, marginTop: 14, flexWrap: 'wrap' }}>
               {meta.map(([k, v]) => (
                 <div key={k} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>

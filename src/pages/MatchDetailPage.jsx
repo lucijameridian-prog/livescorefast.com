@@ -71,27 +71,27 @@ export default function MatchDetailPage() {
 
       <div style={{ maxWidth: 1180, margin: '14px auto 0', padding: '0 18px' }}>
         <div style={{ borderRadius: 12, overflow: 'hidden', border: '1px solid var(--line)', background: 'radial-gradient(120% 140% at 50% -20%,#21304a 0%,#0d1320 60%,#090d16 100%)' }}>
-          <div style={{ padding: '22px 28px 26px' }}>
+          <div style={{ padding: 'clamp(18px,4vw,22px) clamp(12px,3vw,28px) 26px' }}>
             <div style={{ textAlign: 'center', fontSize: 12.5, fontWeight: 600, letterSpacing: '1px', color: '#b9c4d4', textTransform: 'uppercase', marginBottom: 18 }}>{event.strLeague}</div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 24 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 'clamp(8px,3vw,24px)' }}>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
-                <TeamBadge name={home.name} logo={home.logo} size={78} fontSize="26px" />
-                <span className="font-cond" style={{ fontWeight: 700, fontSize: 22, letterSpacing: '.5px', color: '#fff', textAlign: 'center' }}>{home.name}</span>
+                <TeamBadge name={home.name} logo={home.logo} size={64} fontSize="22px" />
+                <span className="font-cond" style={{ fontWeight: 700, fontSize: 'clamp(15px,4vw,22px)', letterSpacing: '.5px', color: '#fff', textAlign: 'center' }}>{home.name}</span>
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, minWidth: 200 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, minWidth: 'clamp(120px,30vw,200px)' }}>
                 <span style={statusBadgeStyle(st.type)}>
                   {st.type === 'live' && <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#ff3232', animation: 'lsf-blink 1s infinite' }} />}
                   {live ? `LIVE · ${st.text}` : st.text}
                 </span>
-                <div className="font-cond" style={{ display: 'flex', alignItems: 'center', gap: 18, fontWeight: 800, fontSize: 64, lineHeight: 1, color: '#fff' }}>
-                  <span>{event.intHomeScore ?? '-'}</span><span style={{ color: 'var(--mut)', fontSize: 40 }}>:</span><span>{event.intAwayScore ?? '-'}</span>
+                <div className="font-cond" style={{ display: 'flex', alignItems: 'center', gap: 'clamp(10px,3vw,18px)', fontWeight: 800, fontSize: 'clamp(40px,12vw,64px)', lineHeight: 1, color: '#fff' }}>
+                  <span>{event.intHomeScore ?? '-'}</span><span style={{ color: 'var(--mut)', fontSize: 'clamp(26px,8vw,40px)' }}>:</span><span>{event.intAwayScore ?? '-'}</span>
                 </div>
                 {(event.intHomeScoreHalf != null && event.intHomeScoreHalf !== '') && <span style={{ fontSize: 12, color: 'var(--mut)' }}>HT: {event.intHomeScoreHalf} - {event.intAwayScoreHalf}</span>}
-                {event.strVenue && <span style={{ fontSize: 12, color: 'var(--mut)' }}>{event.strVenue}</span>}
+                {event.strVenue && <span style={{ fontSize: 12, color: 'var(--mut)', textAlign: 'center' }}>{event.strVenue}</span>}
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
-                <TeamBadge name={away.name} logo={away.logo} size={78} fontSize="26px" />
-                <span className="font-cond" style={{ fontWeight: 700, fontSize: 22, letterSpacing: '.5px', color: '#fff', textAlign: 'center' }}>{away.name}</span>
+                <TeamBadge name={away.name} logo={away.logo} size={64} fontSize="22px" />
+                <span className="font-cond" style={{ fontWeight: 700, fontSize: 'clamp(15px,4vw,22px)', letterSpacing: '.5px', color: '#fff', textAlign: 'center' }}>{away.name}</span>
               </div>
             </div>
           </div>

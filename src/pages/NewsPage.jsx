@@ -67,7 +67,7 @@ export default function NewsPage() {
 
       {/* FEATURED */}
       {!loading && feat && (
-        <button onClick={() => setActive(feat)} className="card-hover"
+        <button onClick={() => setActive(feat)} className="card-hover news-featured"
           style={{ width: '100%', textAlign: 'left', display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 0, borderRadius: 12, overflow: 'hidden', border: '1px solid var(--line)', marginBottom: 18, cursor: 'pointer', background: 'transparent', padding: 0 }}>
           <div style={{ minHeight: 300, background: feat.image ? `url(${feat.image}) center/cover` : GRADS[0], position: 'relative', display: 'flex', alignItems: 'flex-end', padding: 22 }}>
             <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg,transparent 40%,rgba(0,0,0,.55))' }} />

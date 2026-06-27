@@ -80,7 +80,7 @@ export default function FootballPage() {
       <main style={{ display: 'flex', flexDirection: 'column', gap: 14, minWidth: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <span style={{ width: 34, height: 34, borderRadius: 7, background: 'var(--green)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Saira Condensed',sans-serif", fontWeight: 800, fontSize: 15, color: '#fff' }}>FB</span>
-          <h1 className="font-cond" style={{ fontWeight: 800, fontSize: 30, letterSpacing: '.5px', color: '#fff', textTransform: 'uppercase', margin: 0 }}>Football</h1>
+          <h1 className="font-cond" style={{ fontWeight: 800, fontSize: 'clamp(22px,6vw,30px)', letterSpacing: '.5px', color: '#fff', textTransform: 'uppercase', margin: 0 }}>Football</h1>
           {liveTotal > 0 && (
             <span className="font-cond" style={{ background: 'rgba(255,50,50,.15)', color: '#ff6b6b', fontWeight: 700, fontSize: 13, padding: '3px 10px', borderRadius: 5, display: 'flex', alignItems: 'center', gap: 6 }}>
               <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#ff3232', animation: 'lsf-blink 1s infinite' }} />{liveTotal} LIVE
