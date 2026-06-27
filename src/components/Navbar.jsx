@@ -2,6 +2,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import SearchBar from './SearchBar'
 import GetAppButton from './GetAppButton'
+import MobileMenu from './MobileMenu'
 import { getLiveMatches } from '../api/sports'
 
 const NAV = [
@@ -57,12 +58,14 @@ export default function Navbar() {
 
       {/* MAIN HEADER */}
       <header style={{ height: 66, background: 'linear-gradient(180deg,#E2231A 0%,#b3120c 100%)', display: 'flex', alignItems: 'center', padding: '0 clamp(10px,2vw,18px)', gap: 'clamp(10px,2vw,24px)', position: 'sticky', top: 0, zIndex: 40, boxShadow: '0 4px 18px rgba(0,0,0,.45)' }}>
+        <div className="lg:hidden"><MobileMenu /></div>
+
         <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none', flexShrink: 0 }}>
           <svg width="28" height="28" viewBox="0 0 32 32" fill="none"><path d="M16 3 L28 27 L20.5 27 L16 16 L11.5 27 L4 27 Z" fill="#fff" /><path d="M16 11 L20.5 21 L11.5 21 Z" fill="var(--gold)" /></svg>
           <span className="font-cond" style={{ fontWeight: 800, fontSize: 'clamp(19px,5vw,25px)', letterSpacing: '.3px', color: '#fff', lineHeight: 1 }}>livescore<span style={{ color: 'var(--gold)' }}>fast</span></span>
         </Link>
 
-        <nav style={{ display: 'flex', alignItems: 'center', gap: 3, height: '100%', overflowX: 'auto', flex: 1 }} className="nav-scroll">
+        <nav style={{ alignItems: 'center', gap: 3, height: '100%', overflowX: 'auto', flex: 1 }} className="nav-scroll hidden lg:flex">
           {NAV.map(item => {
             const active = item.to === '/' ? pathname === '/' : pathname.startsWith(item.to)
             return (
@@ -74,6 +77,7 @@ export default function Navbar() {
           })}
         </nav>
 
+        <div className="lg:hidden" style={{ flex: 1 }} />
         <div className="hidden lg:block"><SearchBar /></div>
         <div className="hidden sm:block"><GetAppButton /></div>
         <div className="sm:hidden"><GetAppButton compact /></div>
