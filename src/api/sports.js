@@ -26,6 +26,27 @@ export async function getTopLeagues() {
   ]
 }
 
+// ─── EVENT DETAILS ───────────────────────────────────────
+export async function getEventDetails(eventId) {
+  const res = await client.get(`/lookupevent.php?id=${eventId}`)
+  return res.data.events?.[0] || null
+}
+
+export async function getEventTimeline(eventId) {
+  const res = await client.get(`/lookuptimeline.php?id=${eventId}`)
+  return res.data.timeline || []
+}
+
+export async function getEventStats(eventId) {
+  const res = await client.get(`/lookupeventstats.php?id=${eventId}`)
+  return res.data.eventstats || []
+}
+
+export async function getEventLineup(eventId) {
+  const res = await client.get(`/lookuplineup.php?id=${eventId}`)
+  return res.data.lineup || []
+}
+
 // ─── GENERIC SPORTS ──────────────────────────────────────
 const SPORT_MAP = {
   basketball: 'Basketball',

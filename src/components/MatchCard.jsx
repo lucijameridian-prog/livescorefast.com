@@ -1,3 +1,5 @@
+import { useNavigate } from 'react-router-dom'
+
 function StatusBadge({ status }) {
   if (!status) return <span className="text-xs text-slate-400">Scheduled</span>
   const s = status.toUpperCase()
@@ -9,6 +11,7 @@ function StatusBadge({ status }) {
 }
 
 export default function MatchCard({ match }) {
+  const navigate = useNavigate()
   const homeName = match.strHomeTeam || 'Home'
   const awayName = match.strAwayTeam || 'Away'
   const homeLogo = match.strHomeTeamBadge || null
@@ -24,7 +27,9 @@ export default function MatchCard({ match }) {
   const awayWin = homeScore !== null && homeScore !== '' && awayScore !== null && awayScore !== '' && Number(awayScore) > Number(homeScore)
 
   return (
-    <div className={`bg-dark-800 rounded-lg p-4 border transition-colors hover:border-slate-600
+    <div
+      onClick={() => match.idEvent && navigate(`/match/${match.idEvent}`)}
+      className={`bg-dark-800 rounded-lg p-4 border transition-colors hover:border-slate-600 ${match.idEvent ? 'cursor-pointer' : ''}
       ${isLive ? 'border-red-800/50' : 'border-dark-600'}`}>
 
       <div className="flex items-center justify-between mb-3">

@@ -6,6 +6,7 @@ import BasketballPage from './pages/BasketballPage'
 import HockeyPage from './pages/HockeyPage'
 import GenericSportPage from './pages/GenericSportPage'
 import ComingSoonPage from './pages/ComingSoonPage'
+import MatchDetailPage from './pages/MatchDetailPage'
 
 export default function App() {
   return (
@@ -28,6 +29,7 @@ export default function App() {
             <Route path="/afl" element={<GenericSportPage sport="afl" label="AFL" icon="🏉" />} />
             <Route path="/formula1" element={<GenericSportPage sport="formula1" label="Formula 1" icon="🏎️" />} />
             <Route path="/tennis" element={<ComingSoonPage sport="Tennis" icon="🎾" />} />
+            <Route path="/match/:id" element={<MatchDetailPage />} />
           </Routes>
         </main>
       </div>
