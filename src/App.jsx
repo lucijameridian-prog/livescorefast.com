@@ -11,6 +11,7 @@ import MatchDetailPage from './pages/MatchDetailPage'
 import NewsPage from './pages/NewsPage'
 import TeamPage from './pages/TeamPage'
 import PlayerPage from './pages/PlayerPage'
+import PredictionsPage from './pages/PredictionsPage'
 
 export default function App() {
   return (
@@ -20,6 +21,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<LivePage />} />
           <Route path="/news" element={<NewsPage />} />
+          <Route path="/predictions" element={<PredictionsPage />} />
           <Route path="/football" element={<FootballPage />} />
           <Route path="/basketball" element={<BasketballPage />} />
           <Route path="/hockey" element={<HockeyPage />} />

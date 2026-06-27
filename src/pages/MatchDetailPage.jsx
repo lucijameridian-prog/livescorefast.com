@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { getEventDetails, getEventTimeline, getEventStats, getEventLineup, getLiveMatches } from '../api/sports'
 import TeamBadge from '../components/TeamBadge'
+import PredictionCard from '../components/PredictionCard'
 import { teamColor } from '../utils/team'
 import { matchStatus, statusBadgeStyle, isLiveType } from '../utils/status'
 
@@ -186,6 +187,12 @@ export default function MatchDetailPage() {
         </main>
 
         <aside className="col-right" style={{ position: 'static' }}>
+          {event.idHomeTeam && event.idAwayTeam && (
+            <PredictionCard
+              home={{ id: event.idHomeTeam, name: event.strHomeTeam, logo: event.strHomeTeamBadge }}
+              away={{ id: event.idAwayTeam, name: event.strAwayTeam, logo: event.strAwayTeamBadge }}
+              showTeams={false} />
+          )}
           {info.length > 0 && (
             <div className="panel">
               <div style={PANEL_HEAD}>Match Info</div>

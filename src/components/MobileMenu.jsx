@@ -17,6 +17,7 @@ const SPORTS = [
 
 const MAIN = [
   { name: 'Live Scores', to: '/' },
+  { name: 'Predictions', to: '/predictions' },
   { name: 'News', to: '/news' },
 ]
 
