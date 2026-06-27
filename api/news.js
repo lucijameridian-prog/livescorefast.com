@@ -1,13 +1,10 @@
 // Vercel serverless function — aggregates sports news from Balkan + world portals,
 // strips HTML and returns clean in-app SUMMARIES (no outgoing links).
 
-// Top 5 Balkan sports portals (sport-specific feeds only).
+// Balkan sports portals (sport-specific feeds only).
 const BALKAN_FEEDS = [
   { source: 'Index Sport', url: 'https://www.index.hr/rss/sport' },
-  { source: 'Telegraf Sport', url: 'https://www.telegraf.rs/rss/sport' },
   { source: 'Nova Sport', url: 'https://nova.rs/sport/feed/' },
-  { source: '24sata Sport', url: 'https://www.24sata.hr/feeds/sport.xml' },
-  { source: 'Sportske novosti', url: 'https://sportske.jutarnji.hr/feed' },
 ]
 
 const WORLD_FEEDS = {
