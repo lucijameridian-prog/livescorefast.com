@@ -108,6 +108,18 @@ body {
   .player-grid { grid-template-columns: 1fr !important; }
 }
 
+/* promo banner image: fill on desktop, show whole image on mobile */
+.promo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+@media (max-width: 700px) {
+  .promo-img { object-fit: contain; }
+}
+
 /* match card grid */
 .card-grid {
   display: grid;

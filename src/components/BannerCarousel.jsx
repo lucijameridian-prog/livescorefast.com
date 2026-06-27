@@ -18,11 +18,9 @@ const BANNERS = [
 
 export default function BannerCarousel() {
   const [idx, setIdx] = useState(0)
-  // src per promo (starts .jpg), and a set of keys that failed both extensions
-  const [srcs, setSrcs] = useState(() => Object.fromEntries(PROMOS.map(p => [p.key, `/promos/${p.key}.jpg`])))
-  const [broken, setBroken] = useState({})
+  const [hidden, setHidden] = useState({}) // keys whose image failed to load
 
-  const promoSlides = PROMOS.filter(p => !broken[p.key]).map(p => ({ type: 'img', ...p, src: srcs[p.key] }))
+  const promoSlides = PROMOS.filter(p => !hidden[p.key]).map(p => ({ type: 'img', ...p, src: `/promos/${p.key}.jpg` }))
   const slides = [...promoSlides, ...BANNERS]
   const n = slides.length
   const cur = n ? idx % n : 0
@@ -33,22 +31,14 @@ export default function BannerCarousel() {
     return () => clearInterval(t)
   }, [n])
 
-  const onImgError = (key) => {
-    setSrcs(s => {
-      const url = s[key]
-      if (url.endsWith('.jpg')) return { ...s, [key]: `/promos/${key}.png` }
-      setBroken(b => ({ ...b, [key]: true }))
-      return s
-    })
-  }
+  const onImgError = (key) => setHidden(h => ({ ...h, [key]: true }))
 
   return (
     <div style={{ position: 'relative', borderRadius: 10, overflow: 'hidden', height: 'clamp(168px,40vw,208px)', background: '#0a0f1a' }}>
       <div style={{ display: 'flex', height: '100%', transition: 'transform .5s cubic-bezier(.4,0,.2,1)', transform: `translateX(-${cur * 100}%)` }}>
         {slides.map((b, i) => b.type === 'img' ? (
           <div key={'p' + b.key} style={{ minWidth: '100%', height: '100%', background: '#05070d' }}>
-            <img src={b.src} alt={b.alt} onError={() => onImgError(b.key)}
-              style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', display: 'block' }} />
+            <img src={b.src} alt={b.alt} onError={() => onImgError(b.key)} className="promo-img" />
           </div>
         ) : (
           <div key={'g' + i} style={{ minWidth: '100%', height: '100%', position: 'relative', background: b.grad, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '0 clamp(20px,5vw,42px)', overflow: 'hidden' }}>
